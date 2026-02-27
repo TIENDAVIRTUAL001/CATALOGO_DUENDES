@@ -162,12 +162,13 @@ async function loadInventory() {
       
       const elf = {};
       headers.forEach((header, index) => {
-        if (row[index]) {
+        if (row[index] && header) {
           elf[header] = row[index].replace(/^"|"$/g, ''); // Remove surrounding quotes
         }
       });
       
-      if (elf.id && elf.name && elf.image) {
+      // Only add if it has at least an ID, a name, and an image
+      if (elf.id && elf.name && elf.image && elf.name.trim() !== '' && elf.image.trim() !== '') {
         parsedInventory.push(elf);
       }
     }

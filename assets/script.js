@@ -210,7 +210,7 @@ function renderGallery(list) {
   catalogCount.textContent = `${list.length} modelo${list.length === 1 ? '' : 's'}`;
 }
 
-function selectElf(id, card) {
+function selectElf(id, card, showDetail = true) {
   const match = inventory.find((item) => item.id === id);
   if (!match) return;
 
@@ -225,7 +225,10 @@ function selectElf(id, card) {
 
   syncWhatsAppLinks();
   drawCustomizer();
-  showDetailView(match);
+  
+  if (showDetail) {
+    showDetailView(match);
+  }
 }
 
 function syncWhatsAppLinks() {
@@ -826,12 +829,12 @@ function refreshCatalog() {
   if (!selectedElf || !filtered.some((item) => item.id === selectedElf.id)) {
     const first = filtered[0];
     const firstCard = gallery.querySelector(`[data-id="${first.id}"]`);
-    selectElf(first.id, firstCard);
+    selectElf(first.id, firstCard, false);
     return;
   }
 
   const currentCard = gallery.querySelector(`[data-id="${selectedElf.id}"]`);
-  if (currentCard) selectElf(selectedElf.id, currentCard);
+  if (currentCard) selectElf(selectedElf.id, currentCard, false);
 }
 
 function chooseRandomElf() {

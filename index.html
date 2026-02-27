@@ -7,13 +7,32 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header>
-    <h1>Catálogo de Duendes</h1>
-    <p>Selecciona un duende para personalizarlo y contactar por WhatsApp.</p>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <h1>Catálogo de Duendes</h1>
+        <small>Edición personalizada y pedidos por WhatsApp</small>
+      </div>
+      <div class="header-actions">
+        <a id="topWhatsapp" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
+      </div>
+    </div>
   </header>
 
-  <main class="layout">
-    <section class="gallery" id="gallery">
+  <section class="hero container">
+    <h2>Encuentra tu duende ideal</h2>
+    <p class="lead">Selecciona un modelo, personaliza su estilo y descarga una vista previa de tu diseño.</p>
+    <div class="searchRow">
+      <input id="q" type="search" placeholder="Buscar por nombre de imagen (ej: 12.jpeg)">
+      <select id="sort" aria-label="Ordenar catálogo">
+        <option value="default">Orden original</option>
+        <option value="name">Ordenar por nombre</option>
+      </select>
+    </div>
+  </section>
+
+  <main class="container layout">
+    <section class="gallery" id="gallery" aria-label="Galería de duendes">
       <!-- Cards se insertan dinámicamente -->
     </section>
 
@@ -31,14 +50,16 @@
         <label>Nombre: <input type="text" id="labelText" placeholder="Nombre del duende"></label>
         <label>Tamaño texto: <input type="number" id="labelSize" value="24"></label>
         <label>Color texto: <input type="color" id="labelColor" value="#000000"></label>
-        <button id="downloadBtn">Descargar imagen</button>
-        <a id="whatsappLink" class="whatsapp" target="_blank">Contactar por WhatsApp</a>
+        <div class="editor-actions">
+          <button id="downloadBtn" class="btn primary" type="button">Descargar imagen</button>
+          <a id="whatsappLink" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+        </div>
       </div>
     </aside>
   </main>
 
   <footer>
-    <small>Catálogo creado con las imágenes en la carpeta <strong>IMAGENES</strong>.</small>
+    <small>Catálogo creado con imágenes locales en <strong>IMAGENES</strong>.</small>
   </footer>
 
   <script>

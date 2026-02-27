@@ -19,6 +19,7 @@ const PHONE = '573219170363'; // número sin signos
 
 let currentImage = new Image();
 let currentSrc = null;
+let activeCard = null;
 
 function populateGallery(){
   // build cards and keep data
@@ -46,28 +47,40 @@ function populateGallery(){
     card.appendChild(img);
     card.appendChild(meta);
     card.dataset.name = name.textContent.toLowerCase();
-    card.addEventListener('click', ()=> loadToEditor(src));
+    card.addEventListener('click', ()=> loadToEditor(src, card));
     gallery.appendChild(card);
   });
 }
 
-function loadToEditor(src){
+function loadToEditor(src, card){
   currentSrc = src;
   currentImage = new Image();
   currentImage.crossOrigin = 'anonymous';
   currentImage.onload = render;
   currentImage.src = src;
+  if(activeCard) activeCard.classList.remove('active');
+  if(card){
+    activeCard = card;
+    activeCard.classList.add('active');
+  }
   updateWhatsAppLink();
 }
 
 function updateWhatsAppLink(){
-  const desc = labelText.value || 'Duende';
+  const selectedFile = currentSrc ? currentSrc.split('/').pop() : 'duende';
+  const desc = labelText.value || selectedFile;
   whatsappLink.href = `https://wa.me/${PHONE}?text=${encodeURIComponent('Hola, quiero encargar un duende: '+desc)}`;
   whatsappLink.textContent = 'Contactar por WhatsApp';
-  topWhatsapp.href = whatsappLink.href;
+  if(topWhatsapp){
+    topWhatsapp.href = whatsappLink.href;
+  }
 }
 
 function render(){
+  if(!currentImage || !currentImage.width || !currentImage.height){
+    return;
+  }
+
   // limpiar
   ctx.fillStyle = bgColor.value;
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -163,4 +176,4 @@ downloadBtn.addEventListener('click', ()=>{
 // inicializar
 populateGallery();
 // precargar primer imagen si existe
-if(IMAGES && IMAGES.length) loadToEditor(IMAGES[0]);
+if(IMAGES && IMAGES.length) loadToEditor(IMAGES[0], gallery.firstElementChild);

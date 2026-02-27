@@ -3,15 +3,24 @@ const canvas = document.getElementById('preview');
 const ctx = canvas.getContext('2d');
 
 const bgColor = document.getElementById('bgColor');
+const bgColor2 = document.getElementById('bgColor2');
+const bgStyle = document.getElementById('bgStyle');
 const skinColor = document.getElementById('skinColor');
 const hatColor = document.getElementById('hatColor');
+const hatStyle = document.getElementById('hatStyle');
 const clothColor = document.getElementById('clothColor');
+const clothPattern = document.getElementById('clothPattern');
 const eyeColor = document.getElementById('eyeColor');
 const eyeStyle = document.getElementById('eyeStyle');
+const browStyle = document.getElementById('browStyle');
+const mouthStyle = document.getElementById('mouthStyle');
 const beardStyle = document.getElementById('beardStyle');
 const accessory = document.getElementById('accessory');
+const frameStyle = document.getElementById('frameStyle');
+const sparkle = document.getElementById('sparkle');
 const labelText = document.getElementById('labelText');
-const downloadBtn = document.getElementById('downloadBtn');
+
+const sendWhatsappBtn = document.getElementById('sendWhatsappBtn');
 const whatsappLink = document.getElementById('whatsappLink');
 const topWhatsapp = document.getElementById('topWhatsapp');
 const heroWhatsapp = document.getElementById('heroWhatsapp');
@@ -36,9 +45,9 @@ const adminList = document.getElementById('adminList');
 
 const PHONE = '573219170363';
 const ADMIN_PASSWORD = 'DuenDes123@@@';
-const STATE_KEY = 'duendesCatalogo.admin.v1';
+const STATE_KEY = 'duendesCatalogo.ultra.v1';
 
-const BASE_DUENDES = [
+const INITIAL_DUENDES = [
   { id: 'd1', name: 'Rodolfo', image: 'IMAGENES/1.jpeg' },
   { id: 'd2', name: 'Rigo', image: 'IMAGENES/2.jpeg' },
   { id: 'd3', name: 'Bruno', image: 'IMAGENES/3.jpeg' },
@@ -60,59 +69,43 @@ const BASE_DUENDES = [
   { id: 'd19', name: 'Mauro', image: 'IMAGENES/19.jpeg' }
 ];
 
-let state = loadState();
-let inventory = [];
+let inventory = loadInventory();
 let visibleInventory = [];
 let selectedElf = null;
 let activeCard = null;
 let adminUnlocked = false;
 
-function loadState() {
+function loadInventory() {
   const raw = localStorage.getItem(STATE_KEY);
   if (!raw) {
-    return { hiddenBaseIds: [], customItems: [] };
+    localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
+    return [...INITIAL_DUENDES];
   }
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || Array.isArray(parsed)) {
-      return { hiddenBaseIds: [], customItems: [] };
-    }
-
-    const hiddenBaseIds = Array.isArray(parsed.hiddenBaseIds) ? parsed.hiddenBaseIds : [];
-    const customItems = Array.isArray(parsed.customItems) ? parsed.customItems : [];
-
-    return { hiddenBaseIds, customItems };
+    if (!Array.isArray(parsed)) return [...INITIAL_DUENDES];
+    return parsed.filter((item) => item?.id && item?.name && item?.image);
   } catch {
-    return { hiddenBaseIds: [], customItems: [] };
+    return [...INITIAL_DUENDES];
   }
 }
 
-function saveState() {
-  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+function saveInventory() {
+  localStorage.setItem(STATE_KEY, JSON.stringify(inventory));
 }
 
-function buildInventory() {
-  const visibleBase = BASE_DUENDES.filter((elf) => !state.hiddenBaseIds.includes(elf.id));
-  const custom = state.customItems.filter((elf) => elf?.id && elf?.name && elf?.image);
-  inventory = [...visibleBase, ...custom];
-}
-
-function buildWhatsAppLink(message) {
+function waLink(message) {
   return `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`;
 }
 
-function createWhatsAppTextIcon() {
-  return '💬';
-}
-
-function populateGallery(list) {
+function renderGallery(list) {
   gallery.innerHTML = '';
 
   if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'admin-item';
-    empty.innerHTML = '<strong>No hay duendes visibles.</strong><small>Abre Panel admin y restaura o activa duendes base.</small>';
+    empty.innerHTML = '<strong>No hay duendes disponibles.</strong><small>Agrégalos desde el Panel admin.</small>';
     gallery.appendChild(empty);
     catalogCount.textContent = '0 modelos';
     return;
@@ -124,8 +117,8 @@ function populateGallery(list) {
 
     const img = document.createElement('img');
     img.src = elf.image;
-    img.loading = 'lazy';
     img.alt = elf.name;
+    img.loading = 'lazy';
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -138,10 +131,10 @@ function populateGallery(list) {
     actions.className = 'actions';
 
     const btn = document.createElement('a');
-    btn.href = buildWhatsAppLink(`Hola, quiero información sobre el duende ${elf.name}.`);
+    btn.href = waLink(`Hola, quiero información sobre el duende ${elf.name}.`);
     btn.target = '_blank';
     btn.rel = 'noopener noreferrer';
-    btn.innerHTML = `<span class="wa-icon" aria-hidden="true">${createWhatsAppTextIcon()}</span><span>WhatsApp</span>`;
+    btn.innerHTML = '<span class="wa-icon" aria-hidden="true">💬</span><span>WhatsApp</span>';
 
     actions.appendChild(btn);
     meta.appendChild(name);
@@ -172,57 +165,77 @@ function selectElf(id, card) {
     activeCard.classList.add('active');
   }
 
-  updateWhatsAppLink();
+  syncWhatsAppLinks();
   drawCustomizer();
 }
 
-function updateWhatsAppLink() {
+function syncWhatsAppLinks() {
   const name = labelText.value?.trim() || selectedElf?.name || 'duende personalizado';
-  const msg = `Hola, quiero encargar el duende ${name}.`;
-  const href = buildWhatsAppLink(msg);
+  const message = `Hola, quiero encargar el duende ${name}.`;
+  const href = waLink(message);
 
-  whatsappLink.href = href;
-  topWhatsapp.href = href;
-  heroWhatsapp.href = href;
+  if (whatsappLink) whatsappLink.href = href;
+  if (topWhatsapp) topWhatsapp.href = href;
+  if (heroWhatsapp) heroWhatsapp.href = href;
 }
 
-function drawCustomizer() {
-  const width = canvas.width;
-  const height = canvas.height;
-  const centerX = width / 2;
+function drawBackground(width, height) {
+  if (bgStyle.value === 'gradient') {
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, bgColor.value);
+    gradient.addColorStop(1, bgColor2.value);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    return;
+  }
 
-  ctx.clearRect(0, 0, width, height);
+  if (bgStyle.value === 'spotlight') {
+    ctx.fillStyle = bgColor2.value;
+    ctx.fillRect(0, 0, width, height);
+    const light = ctx.createRadialGradient(width / 2, height / 3, 20, width / 2, height / 2, 220);
+    light.addColorStop(0, bgColor.value);
+    light.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, width, height);
+    return;
+  }
+
   ctx.fillStyle = bgColor.value;
   ctx.fillRect(0, 0, width, height);
+}
 
-  ctx.fillStyle = clothColor.value;
-  ctx.beginPath();
-  ctx.roundRect(centerX - 95, 205, 190, 160, 30);
-  ctx.fill();
+function drawHat(centerX) {
+  ctx.fillStyle = hatColor.value;
 
-  ctx.fillStyle = skinColor.value;
-  ctx.beginPath();
-  ctx.arc(centerX, 165, 72, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#e0ad84';
-  ctx.beginPath();
-  ctx.ellipse(centerX, 185, 40, 14, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  drawEyes(centerX);
-  drawMouth(centerX);
-  drawHat(centerX);
-  drawBeard(centerX);
-  drawAccessory(centerX);
-
-  const name = labelText.value?.trim();
-  if (name) {
-    ctx.fillStyle = '#152039';
-    ctx.font = '700 24px Outfit';
-    ctx.textAlign = 'center';
-    ctx.fillText(name, centerX, 390);
+  if (hatStyle.value === 'wide') {
+    ctx.beginPath();
+    ctx.ellipse(centerX, 122, 95, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(centerX - 72, 116);
+    ctx.lineTo(centerX + 72, 116);
+    ctx.lineTo(centerX, 34);
+    ctx.closePath();
+    ctx.fill();
+  } else if (hatStyle.value === 'night') {
+    ctx.beginPath();
+    ctx.moveTo(centerX - 58, 122);
+    ctx.quadraticCurveTo(centerX + 105, 98, centerX + 16, 18);
+    ctx.quadraticCurveTo(centerX - 26, 60, centerX - 58, 122);
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(centerX - 90, 120);
+    ctx.lineTo(centerX + 90, 120);
+    ctx.lineTo(centerX, 20);
+    ctx.closePath();
+    ctx.fill();
   }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.roundRect(centerX - 90, 116, 180, 24, 10);
+  ctx.fill();
 }
 
 function drawEyes(centerX) {
@@ -256,13 +269,57 @@ function drawEyes(centerX) {
     return;
   }
 
+  if (eyeStyle.value === 'wink') {
+    ctx.beginPath();
+    ctx.moveTo(leftX - 10, y);
+    ctx.lineTo(leftX + 10, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(rightX, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
   ctx.beginPath();
   ctx.arc(leftX, y, 6, 0, Math.PI * 2);
   ctx.arc(rightX, y, 6, 0, Math.PI * 2);
   ctx.fill();
 }
 
+function drawBrows(centerX) {
+  const style = browStyle.value;
+  const y = 138;
+  const thickness = style === 'thick' ? 5 : style === 'soft' ? 2 : 3;
+  const angle = style === 'soft' ? 4 : 9;
+
+  ctx.strokeStyle = '#3d2b1f';
+  ctx.lineWidth = thickness;
+  ctx.beginPath();
+  ctx.moveTo(centerX - 38, y + angle);
+  ctx.lineTo(centerX - 12, y);
+  ctx.moveTo(centerX + 12, y);
+  ctx.lineTo(centerX + 38, y + angle);
+  ctx.stroke();
+}
+
 function drawMouth(centerX) {
+  if (mouthStyle.value === 'open') {
+    ctx.fillStyle = '#b02a2a';
+    ctx.beginPath();
+    ctx.ellipse(centerX, 198, 14, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  if (mouthStyle.value === 'mustache') {
+    ctx.fillStyle = '#593f2a';
+    ctx.beginPath();
+    ctx.ellipse(centerX - 11, 192, 14, 6, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(centerX + 11, 192, 14, 6, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
   ctx.strokeStyle = '#6f2b2b';
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -270,19 +327,33 @@ function drawMouth(centerX) {
   ctx.stroke();
 }
 
-function drawHat(centerX) {
-  ctx.fillStyle = hatColor.value;
+function drawCloth(centerX) {
+  ctx.fillStyle = clothColor.value;
   ctx.beginPath();
-  ctx.moveTo(centerX - 90, 120);
-  ctx.lineTo(centerX + 90, 120);
-  ctx.lineTo(centerX, 20);
-  ctx.closePath();
+  ctx.roundRect(centerX - 95, 205, 190, 160, 30);
   ctx.fill();
 
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.roundRect(centerX - 90, 116, 180, 24, 10);
-  ctx.fill();
+  if (clothPattern.value === 'stripes') {
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 4;
+    for (let x = centerX - 80; x < centerX + 90; x += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x, 214);
+      ctx.lineTo(x, 358);
+      ctx.stroke();
+    }
+  }
+
+  if (clothPattern.value === 'dots') {
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    for (let y = 225; y < 350; y += 26) {
+      for (let x = centerX - 78; x < centerX + 84; x += 26) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
 }
 
 function drawBeard(centerX) {
@@ -349,44 +420,108 @@ function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
   ctx.fill();
 }
 
-function applyFilters() {
-  buildInventory();
+function drawFrame(width, height) {
+  if (frameStyle.value === 'none') return;
 
-  const q = searchInput.value.trim().toLowerCase();
-  let filtered = inventory.filter((elf) => !q || elf.name.toLowerCase().includes(q));
+  if (frameStyle.value === 'gold') {
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 12;
+  } else {
+    ctx.strokeStyle = 'rgba(255,255,255,.75)';
+    ctx.lineWidth = 10;
+  }
+
+  ctx.strokeRect(6, 6, width - 12, height - 12);
+}
+
+function drawSparkles(width, height) {
+  const level = Number(sparkle.value) / 100;
+  const amount = Math.floor(8 + level * 28);
+  const alpha = 0.15 + level * 0.55;
+
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  for (let i = 0; i < amount; i++) {
+    const x = ((i * 53) % (width - 20)) + 10;
+    const y = ((i * 37) % (height - 20)) + 10;
+    const r = (i % 3) + 1;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawCustomizer() {
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerX = width / 2;
+
+  ctx.clearRect(0, 0, width, height);
+  drawBackground(width, height);
+  drawCloth(centerX);
+
+  ctx.fillStyle = skinColor.value;
+  ctx.beginPath();
+  ctx.arc(centerX, 165, 72, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#e0ad84';
+  ctx.beginPath();
+  ctx.ellipse(centerX, 185, 40, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawBrows(centerX);
+  drawEyes(centerX);
+  drawMouth(centerX);
+  drawHat(centerX);
+  drawBeard(centerX);
+  drawAccessory(centerX);
+  drawSparkles(width, height);
+  drawFrame(width, height);
+
+  const name = labelText.value?.trim();
+  if (name) {
+    ctx.fillStyle = '#152039';
+    ctx.font = '700 24px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, centerX, 390);
+  }
+}
+
+function refreshCatalog() {
+  const query = searchInput.value.trim().toLowerCase();
+  let filtered = inventory.filter((item) => !query || item.name.toLowerCase().includes(query));
 
   if (sortSelect.value === 'name') {
     filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
   }
 
   visibleInventory = filtered;
-  populateGallery(filtered);
+  renderGallery(filtered);
 
-  if (!visibleInventory.length) {
+  if (!filtered.length) {
     selectedElf = null;
     activeCard = null;
-    updateWhatsAppLink();
+    syncWhatsAppLinks();
     drawCustomizer();
     return;
   }
 
-  const selectedStillExists = selectedElf && visibleInventory.some((item) => item.id === selectedElf.id);
-  if (!selectedStillExists) {
-    const first = visibleInventory[0];
+  if (!selectedElf || !filtered.some((item) => item.id === selectedElf.id)) {
+    const first = filtered[0];
     const firstCard = gallery.querySelector(`[data-id="${first.id}"]`);
     selectElf(first.id, firstCard);
-  } else {
-    const sameCard = gallery.querySelector(`[data-id="${selectedElf.id}"]`);
-    if (sameCard) selectElf(selectedElf.id, sameCard);
+    return;
   }
+
+  const currentCard = gallery.querySelector(`[data-id="${selectedElf.id}"]`);
+  if (currentCard) selectElf(selectedElf.id, currentCard);
 }
 
 function chooseRandomElf() {
   if (!visibleInventory.length) return;
-  const randomIndex = Math.floor(Math.random() * visibleInventory.length);
-  const randomElf = visibleInventory[randomIndex];
-  const randomCard = gallery.querySelector(`[data-id="${randomElf.id}"]`);
-  selectElf(randomElf.id, randomCard);
+  const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
+  const card = gallery.querySelector(`[data-id="${random.id}"]`);
+  selectElf(random.id, card);
 }
 
 function openAdminPanel() {
@@ -408,66 +543,23 @@ function unlockAdmin() {
 function renderAdminList() {
   adminList.innerHTML = '';
 
-  BASE_DUENDES.forEach((elf) => {
-    const hidden = state.hiddenBaseIds.includes(elf.id);
-
+  inventory.forEach((elf) => {
     const row = document.createElement('div');
     row.className = 'admin-item';
 
     const info = document.createElement('div');
-    info.innerHTML = `<strong>${elf.name}</strong><small>${hidden ? 'Oculto del catálogo' : 'Visible en catálogo'}</small>`;
-
-    const actionBtn = document.createElement('button');
-    actionBtn.className = 'btn soft';
-    actionBtn.type = 'button';
-    actionBtn.textContent = hidden ? 'Mostrar' : 'Ocultar';
-    actionBtn.addEventListener('click', () => toggleBaseVisibility(elf.id));
-
-    row.appendChild(info);
-    row.appendChild(actionBtn);
-    adminList.appendChild(row);
-  });
-
-  state.customItems.forEach((elf) => {
-    const row = document.createElement('div');
-    row.className = 'admin-item';
-
-    const info = document.createElement('div');
-    info.innerHTML = `<strong>${elf.name}</strong><small>Duende personalizado</small>`;
+    info.innerHTML = `<strong>${elf.name}</strong><small>ID: ${elf.id}</small>`;
 
     const removeBtn = document.createElement('button');
     removeBtn.className = 'btn soft';
     removeBtn.type = 'button';
-    removeBtn.textContent = 'Eliminar';
-    removeBtn.addEventListener('click', () => removeCustomElf(elf.id));
+    removeBtn.textContent = 'Eliminar del catálogo';
+    removeBtn.addEventListener('click', () => deleteElf(elf.id));
 
     row.appendChild(info);
     row.appendChild(removeBtn);
     adminList.appendChild(row);
   });
-}
-
-function toggleBaseVisibility(id) {
-  if (!adminUnlocked) return;
-
-  if (state.hiddenBaseIds.includes(id)) {
-    state.hiddenBaseIds = state.hiddenBaseIds.filter((baseId) => baseId !== id);
-  } else {
-    state.hiddenBaseIds = [...state.hiddenBaseIds, id];
-  }
-
-  saveState();
-  applyFilters();
-  renderAdminList();
-}
-
-function removeCustomElf(id) {
-  if (!adminUnlocked) return;
-
-  state.customItems = state.customItems.filter((item) => item.id !== id);
-  saveState();
-  applyFilters();
-  renderAdminList();
 }
 
 function readFileAsDataUrl(file) {
@@ -483,7 +575,7 @@ async function addElf() {
   if (!adminUnlocked) return;
 
   const name = newElfName.value.trim();
-  const url = newElfImage.value.trim();
+  const imageUrl = newElfImage.value.trim();
   const file = newElfFile.files[0];
 
   if (!name) {
@@ -491,24 +583,24 @@ async function addElf() {
     return;
   }
 
-  let image = url;
+  let image = imageUrl;
   if (!image && file) {
     image = await readFileAsDataUrl(file);
   }
 
   if (!image) {
-    alert('Agrega una URL o selecciona una imagen.');
+    alert('Debes agregar una URL o subir una imagen.');
     return;
   }
 
-  state.customItems.unshift({
-    id: `custom-${Date.now()}`,
+  inventory.unshift({
+    id: `elf-${Date.now()}`,
     name,
     image
   });
 
-  saveState();
-  applyFilters();
+  saveInventory();
+  refreshCatalog();
   renderAdminList();
 
   newElfName.value = '';
@@ -516,56 +608,105 @@ async function addElf() {
   newElfFile.value = '';
 }
 
-function resetCatalog() {
+function deleteElf(id) {
   if (!adminUnlocked) return;
 
-  const confirmed = confirm('¿Deseas restaurar todos los duendes base y eliminar los personalizados?');
-  if (!confirmed) return;
-
-  state = { hiddenBaseIds: [], customItems: [] };
-  saveState();
-  applyFilters();
+  inventory = inventory.filter((item) => item.id !== id);
+  saveInventory();
+  refreshCatalog();
   renderAdminList();
 }
 
-function downloadPreview() {
-  const url = canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${(labelText.value || 'duende').trim().replace(/\s+/g, '-')}.png`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+function resetCatalog() {
+  if (!adminUnlocked) return;
+
+  const ok = confirm('Esto restaura solo el catálogo inicial de imágenes base. ¿Deseas continuar?');
+  if (!ok) return;
+
+  inventory = [...INITIAL_DUENDES];
+  saveInventory();
+  refreshCatalog();
+  renderAdminList();
 }
 
-function bindInputRepaint(element) {
-  element.addEventListener('input', () => {
-    updateWhatsAppLink();
+async function sendDesignToWhatsApp() {
+  const name = labelText.value?.trim() || selectedElf?.name || 'Duende personalizado';
+  const text = `Hola, aquí está mi diseño de duende: ${name}`;
+  const dataUrl = canvas.toDataURL('image/png');
+
+  try {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    const file = new File([blob], `${name.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        text,
+        title: 'Mi duende personalizado'
+      });
+      return;
+    }
+  } catch {
+  }
+
+  const download = document.createElement('a');
+  download.href = dataUrl;
+  download.download = `${name.replace(/\s+/g, '-')}.png`;
+  document.body.appendChild(download);
+  download.click();
+  download.remove();
+
+  window.open(waLink(`${text}. Te envío la imagen adjunta.`), '_blank');
+  alert('Tu imagen se descargó. Adjunta ese archivo en WhatsApp para enviarlo.');
+}
+
+function bindInputRepaint(input) {
+  input.addEventListener('input', () => {
+    syncWhatsAppLinks();
     drawCustomizer();
   });
 }
 
-[bgColor, skinColor, hatColor, clothColor, eyeColor, eyeStyle, beardStyle, accessory, labelText].forEach(bindInputRepaint);
+[
+  bgColor,
+  bgColor2,
+  bgStyle,
+  skinColor,
+  hatColor,
+  hatStyle,
+  clothColor,
+  clothPattern,
+  eyeColor,
+  eyeStyle,
+  browStyle,
+  mouthStyle,
+  beardStyle,
+  accessory,
+  frameStyle,
+  sparkle,
+  labelText
+].forEach(bindInputRepaint);
 
-searchInput.addEventListener('input', applyFilters);
-sortSelect.addEventListener('change', applyFilters);
+searchInput.addEventListener('input', refreshCatalog);
+sortSelect.addEventListener('change', refreshCatalog);
 randomElfBtn.addEventListener('click', chooseRandomElf);
 openAdminBtn.addEventListener('click', openAdminPanel);
 adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
-downloadBtn.addEventListener('click', downloadPreview);
+sendWhatsappBtn.addEventListener('click', sendDesignToWhatsApp);
 
-function actionOnEnter(element, callback) {
+function onEnter(element, fn) {
   element.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') callback();
+    if (event.key === 'Enter') fn();
   });
 }
 
-actionOnEnter(adminPassword, unlockAdmin);
-actionOnEnter(newElfName, addElf);
-actionOnEnter(newElfImage, addElf);
+onEnter(adminPassword, unlockAdmin);
+onEnter(newElfName, addElf);
+onEnter(newElfImage, addElf);
 
-applyFilters();
-updateWhatsAppLink();
+refreshCatalog();
+syncWhatsAppLinks();
 drawCustomizer();

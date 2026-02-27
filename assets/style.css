@@ -22,7 +22,6 @@ h1,h2,h3,p,small{margin:0}
 .brand-logo{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;box-shadow:0 6px 16px rgba(0,0,0,.2)}
 .brand h1{font-size:clamp(1.05rem,2.2vw,1.35rem);font-weight:800;letter-spacing:.2px}
 .brand small{display:block;opacity:.92;font-size:clamp(.72rem,1.7vw,.9rem)}
-
 .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
 .hero{padding-top:16px}
@@ -42,7 +41,7 @@ h1,h2,h3,p,small{margin:0}
 .section-head small{color:var(--muted)}
 
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-.card{background:#fff;border:1px solid #edf0f8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:.2s ease;box-shadow:0 4px 14px rgba(17,24,39,.05)}
+.card{background:#fff;border:1px solid #edf0f8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:.2s ease;box-shadow:0 4px 14px rgba(17,24,39,.05);animation:fadeIn .35s ease both}
 .card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(17,24,39,.12)}
 .card.active{border-color:#cfd7ff;outline:2px solid #ced6ff;outline-offset:1px}
 .card img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#f4f5fb}
@@ -59,6 +58,7 @@ h1,h2,h3,p,small{margin:0}
 .controls label{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,180px);gap:10px;align-items:center;font-size:.84rem;color:#3b4253}
 .controls input[type="text"],.controls input[type="number"],.controls input[type="url"],.controls select{width:100%;border:1px solid var(--border);border-radius:10px;padding:8px;background:#fff;color:var(--text)}
 .controls input[type="color"]{height:34px;border:1px solid var(--border);border-radius:8px;background:#fff;width:100%}
+.controls input[type="range"]{width:100%;accent-color:var(--accent)}
 .editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .editor-actions .btn{flex:1}
 
@@ -66,6 +66,7 @@ h1,h2,h3,p,small{margin:0}
 .btn:hover{transform:translateY(-1px)}
 .btn.primary{background:linear-gradient(120deg,var(--accent),var(--accent-2));color:#fff}
 .btn.whatsapp{background:linear-gradient(120deg,#14b764,#1fd47a);color:#fff}
+.editor-actions .btn.whatsapp{font-size:.95rem;padding:12px 14px}
 .btn.soft{background:#f1f3ff;color:#31376b;border-color:#d7dcfa}
 .wa-icon{font-size:1rem;line-height:1}
 
@@ -113,5 +114,10 @@ footer{padding:18px;text-align:center;color:var(--muted);font-size:.85rem}
   .card .meta{flex-direction:column;align-items:flex-start}
   .admin-item{flex-direction:column;align-items:flex-start}
   .admin-auth input{min-width:0;width:100%}
+}
+
+@keyframes fadeIn{
+  from{opacity:.5;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
 }
 

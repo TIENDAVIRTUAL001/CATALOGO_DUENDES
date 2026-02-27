@@ -69,15 +69,52 @@
       <div class="controls">
         <label>Nombre del duende: <input type="text" id="labelText" placeholder="Ej: Rodolfo"></label>
         <label>Fondo: <input type="color" id="bgColor" value="#eef6ff"></label>
+        <label>Fondo secundario: <input type="color" id="bgColor2" value="#d9e7ff"></label>
+        <label>Tipo de fondo:
+          <select id="bgStyle">
+            <option value="solid">Sólido</option>
+            <option value="gradient">Gradiente</option>
+            <option value="spotlight">Luz mágica</option>
+          </select>
+        </label>
         <label>Tono de piel: <input type="color" id="skinColor" value="#f7c59f"></label>
         <label>Color gorro: <input type="color" id="hatColor" value="#c62828"></label>
+        <label>Estilo gorro:
+          <select id="hatStyle">
+            <option value="classic">Clásico</option>
+            <option value="wide">Ancho</option>
+            <option value="night">Nocturno</option>
+          </select>
+        </label>
         <label>Color traje: <input type="color" id="clothColor" value="#2e7d32"></label>
+        <label>Patrón traje:
+          <select id="clothPattern">
+            <option value="plain">Liso</option>
+            <option value="stripes">Rayas</option>
+            <option value="dots">Puntos</option>
+          </select>
+        </label>
         <label>Color ojos: <input type="color" id="eyeColor" value="#2f2f2f"></label>
         <label>Tipo de ojos:
           <select id="eyeStyle">
             <option value="classic">Clásicos</option>
             <option value="happy">Alegres</option>
             <option value="sleepy">Relajados</option>
+            <option value="wink">Guiño</option>
+          </select>
+        </label>
+        <label>Cejas:
+          <select id="browStyle">
+            <option value="normal">Normales</option>
+            <option value="thick">Gruesas</option>
+            <option value="soft">Suaves</option>
+          </select>
+        </label>
+        <label>Boca:
+          <select id="mouthStyle">
+            <option value="smile">Sonrisa</option>
+            <option value="open">Abierta</option>
+            <option value="mustache">Bigote</option>
           </select>
         </label>
         <label>Barba:
@@ -95,12 +132,19 @@
             <option value="none">Ninguno</option>
           </select>
         </label>
+        <label>Marco:
+          <select id="frameStyle">
+            <option value="none">Sin marco</option>
+            <option value="gold">Dorado</option>
+            <option value="crystal">Cristal</option>
+          </select>
+        </label>
+        <label>Brillo mágico: <input type="range" id="sparkle" min="0" max="100" step="1" value="45"></label>
         <div class="editor-actions">
-          <button id="downloadBtn" class="btn primary" type="button">Descargar imagen</button>
-          <a id="whatsappLink" class="btn whatsapp" target="_blank" rel="noopener noreferrer">
+          <button id="sendWhatsappBtn" class="btn whatsapp" type="button">
             <span class="wa-icon" aria-hidden="true">💬</span>
-            <span>Contactar por WhatsApp</span>
-          </a>
+            <span>Contactar por WhatsApp con mi diseño</span>
+          </button>
         </div>
       </div>
     </aside>

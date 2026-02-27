@@ -94,7 +94,9 @@ const INITIAL_DUENDES = [
   { id: 'd19', name: 'Mauro', image: 'IMAGENES/19.jpeg' }
 ];
 
-let inventory = loadInventory();
+const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQCgICrPabyuhFoM8y2bwqCYk2IbXBBo_YLRnSJT6Oa8L8iQUhQ5wI2ONQZdqG3c51Bgf66ISUVsXBD/pub?output=csv';
+
+let inventory = [];
 let visibleInventory = [];
 let selectedElf = null;
 let activeCard = null;
@@ -127,30 +129,60 @@ function initializeHatSelect() {
   });
 }
 
-function loadInventory() {
-  const raw = localStorage.getItem(STATE_KEY);
-  if (!raw) {
-    localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
-    return [...INITIAL_DUENDES];
-  }
-
+async function loadInventory() {
   try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
-      return [...INITIAL_DUENDES];
+    const response = await fetch(GOOGLE_SHEETS_URL);
+    const csvText = await response.text();
+    
+    // Parse CSV
+    const lines = csvText.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    const parsedInventory = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      
+      // Handle commas inside quotes for prices like "10.000,00"
+      const row = [];
+      let inQuotes = false;
+      let currentValue = '';
+      
+      for (let char of lines[i]) {
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          row.push(currentValue.trim());
+          currentValue = '';
+        } else {
+          currentValue += char;
+        }
+      }
+      row.push(currentValue.trim());
+      
+      const elf = {};
+      headers.forEach((header, index) => {
+        if (row[index]) {
+          elf[header] = row[index].replace(/^"|"$/g, ''); // Remove surrounding quotes
+        }
+      });
+      
+      if (elf.id && elf.name && elf.image) {
+        parsedInventory.push(elf);
+      }
     }
-
-    const valid = parsed.filter((item) => item?.id && item?.name && item?.image);
-    return valid;
-  } catch {
-    localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
-    return [...INITIAL_DUENDES];
+    
+    inventory = parsedInventory.length > 0 ? parsedInventory : [...INITIAL_DUENDES];
+  } catch (error) {
+    console.error('Error loading from Google Sheets:', error);
+    inventory = [...INITIAL_DUENDES];
   }
+  
+  refreshCatalog();
 }
 
 function saveInventory() {
-  localStorage.setItem(STATE_KEY, JSON.stringify(inventory));
+  // No longer saving to local storage, data comes from Google Sheets
 }
 
 function waLink(message) {
@@ -184,6 +216,17 @@ function renderGallery(list) {
     const name = document.createElement('div');
     name.className = 'name';
     name.textContent = elf.name;
+    
+    if (elf.precio) {
+      const price = document.createElement('div');
+      price.className = 'price';
+      price.textContent = `$${elf.precio}`;
+      price.style.color = '#2e7d32';
+      price.style.fontWeight = 'bold';
+      price.style.fontSize = '0.9rem';
+      price.style.marginTop = '4px';
+      name.appendChild(price);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'actions';
@@ -242,7 +285,13 @@ function showDetailView(elf) {
   randomCandidateId = elf.id;
   detailViewImage.src = elf.image;
   detailViewImage.alt = elf.name;
-  detailViewName.textContent = elf.name;
+  
+  let nameText = elf.name;
+  if (elf.precio) {
+    nameText += ` - $${elf.precio}`;
+  }
+  detailViewName.textContent = nameText;
+  
   detailViewBuyBtn.href = waLink(`Hola, quiero comprar el duende ${elf.name}.`);
   
   galleryWrap.classList.add('hidden');
@@ -1026,7 +1075,8 @@ onEnter(adminPassword, unlockAdmin);
 onEnter(newElfName, addElf);
 onEnter(newElfImage, addElf);
 
-refreshCatalog();
+// Load inventory from Google Sheets instead of local storage
+loadInventory();
 syncWhatsAppLinks();
 drawCustomizer();
 

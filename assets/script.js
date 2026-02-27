@@ -28,6 +28,15 @@ const searchInput = document.getElementById('q');
 const sortSelect = document.getElementById('sort');
 const randomElfBtn = document.getElementById('randomElfBtn');
 const catalogCount = document.getElementById('catalogCount');
+const randomModal = document.getElementById('randomModal');
+const randomImage = document.getElementById('randomImage');
+const randomName = document.getElementById('randomName');
+const randomBuyBtn = document.getElementById('randomBuyBtn');
+const randomChooseBtn = document.getElementById('randomChooseBtn');
+const randomCloseBtn = document.getElementById('randomCloseBtn');
+const splashOverlay = document.getElementById('splashOverlay');
+const splashCloseBtn = document.getElementById('splashCloseBtn');
+const contactPromo = document.getElementById('contactPromo');
 
 const openAdminBtn = document.getElementById('openAdminBtn');
 const adminPanel = document.getElementById('adminPanel');
@@ -92,6 +101,7 @@ let visibleInventory = [];
 let selectedElf = null;
 let activeCard = null;
 let adminUnlocked = false;
+let randomCandidateId = null;
 
 function ensureRoundRect() {
   if (CanvasRenderingContext2D.prototype.roundRect) return;
@@ -224,6 +234,29 @@ function syncWhatsAppLinks() {
   const href = waLink(`Hola, quiero encargar el duende ${name}.`);
   if (topWhatsapp) topWhatsapp.href = href;
   if (heroWhatsapp) heroWhatsapp.href = href;
+  if (contactPromo) contactPromo.href = href;
+}
+
+function openRandomModal(elf) {
+  randomCandidateId = elf.id;
+  randomImage.src = elf.image;
+  randomImage.alt = elf.name;
+  randomName.textContent = elf.name;
+  randomBuyBtn.href = waLink(`Hola, el duende ${elf.name} me eligió. Quiero comprarlo.`);
+  randomModal.classList.remove('hidden');
+  randomModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeRandomModal() {
+  randomModal.classList.add('hidden');
+  randomModal.setAttribute('aria-hidden', 'true');
+}
+
+function chooseRandomCandidate() {
+  if (!randomCandidateId) return;
+  const card = gallery.querySelector(`[data-id="${randomCandidateId}"]`);
+  selectElf(randomCandidateId, card);
+  closeRandomModal();
 }
 
 function drawBackground(width, height) {
@@ -605,8 +638,7 @@ function refreshCatalog() {
 function chooseRandomElf() {
   if (!visibleInventory.length) return;
   const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
-  const card = gallery.querySelector(`[data-id="${random.id}"]`);
-  selectElf(random.id, card);
+  openRandomModal(random);
 }
 
 function openAdminPanel() {
@@ -781,11 +813,17 @@ initializeHatSelect();
 searchInput.addEventListener('input', refreshCatalog);
 sortSelect.addEventListener('change', refreshCatalog);
 randomElfBtn.addEventListener('click', chooseRandomElf);
+randomCloseBtn.addEventListener('click', closeRandomModal);
+randomChooseBtn.addEventListener('click', chooseRandomCandidate);
+randomModal.addEventListener('click', (event) => {
+  if (event.target === randomModal) closeRandomModal();
+});
 openAdminBtn.addEventListener('click', openAdminPanel);
 adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
 sendWhatsappBtn.addEventListener('click', sendDesignToWhatsApp);
+splashCloseBtn.addEventListener('click', () => splashOverlay.classList.add('hidden'));
 
 onEnter(adminPassword, unlockAdmin);
 onEnter(newElfName, addElf);
@@ -794,3 +832,7 @@ onEnter(newElfImage, addElf);
 refreshCatalog();
 syncWhatsAppLinks();
 drawCustomizer();
+
+setTimeout(() => {
+  splashOverlay.classList.add('hidden');
+}, 5000);

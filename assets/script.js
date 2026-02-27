@@ -29,9 +29,14 @@ const catalogCount = document.getElementById('catalogCount');
 const galleryWrap = document.getElementById('galleryWrap');
 const detailView = document.getElementById('detailView');
 const detailViewImage = document.getElementById('detailViewImage');
+const detailViewTitle = document.getElementById('detailViewTitle');
 const detailViewName = document.getElementById('detailViewName');
+const detailViewDesc = document.getElementById('detailViewDesc');
 const detailViewBuyBtn = document.getElementById('detailViewBuyBtn');
 const detailViewBackBtn = document.getElementById('detailViewBackBtn');
+
+const loadingOverlay = document.getElementById('loadingOverlay');
+const loadingBar = document.getElementById('loadingBar');
 
 const splashScreen = document.getElementById('splashScreen');
 const splashCloseBtn = document.getElementById('splashCloseBtn');
@@ -256,7 +261,7 @@ function renderGallery(list) {
   catalogCount.textContent = `${list.length} modelo${list.length === 1 ? '' : 's'}`;
 }
 
-function selectElf(id, card, showDetail = true) {
+function selectElf(id, card, showDetail = true, isRandom = false) {
   const match = inventory.find((item) => item.id === id);
   if (!match) return;
 
@@ -273,7 +278,7 @@ function selectElf(id, card, showDetail = true) {
   drawCustomizer();
   
   if (showDetail) {
-    showDetailView(match);
+    showDetailView(match, isRandom);
   }
 }
 
@@ -284,7 +289,7 @@ function syncWhatsAppLinks() {
   if (heroWhatsapp) heroWhatsapp.href = href;
 }
 
-function showDetailView(elf) {
+function showDetailView(elf, isRandom = false) {
   randomCandidateId = elf.id;
   detailViewImage.src = elf.image;
   detailViewImage.alt = elf.name;
@@ -294,6 +299,14 @@ function showDetailView(elf) {
     nameText += ` - $${elf.precio}`;
   }
   detailViewName.textContent = nameText;
+
+  if (isRandom) {
+    detailViewTitle.textContent = `¡${elf.name} te ha elegido!`;
+    detailViewDesc.textContent = "¡Este duende mágico ha sentido una conexión especial contigo! Personalízalo a la derecha o cómpralo directamente tal como está.";
+  } else {
+    detailViewTitle.textContent = "Vista en detalle";
+    detailViewDesc.textContent = "Personaliza este duende a la derecha o cómpralo directamente tal como está.";
+  }
   
   detailViewBuyBtn.href = waLink(`Hola, quiero comprar el duende ${elf.name}.`);
   
@@ -891,9 +904,26 @@ function refreshCatalog() {
 
 function chooseRandomElf() {
   if (!visibleInventory.length) return;
-  const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
-  const card = gallery.querySelector(`[data-id="${random.id}"]`);
-  selectElf(random.id, card);
+  
+  loadingOverlay.classList.remove('hidden');
+  loadingBar.style.width = '0%';
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 15 + 5;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+        const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
+        const card = gallery.querySelector(`[data-id="${random.id}"]`);
+        selectElf(random.id, card, true, true);
+      }, 300);
+    }
+    loadingBar.style.width = `${progress}%`;
+  }, 150);
 }
 
 function openAdminPanel() {

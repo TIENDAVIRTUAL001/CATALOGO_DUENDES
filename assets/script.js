@@ -34,6 +34,7 @@ const detailViewBuyBtn = document.getElementById('detailViewBuyBtn');
 const detailViewBackBtn = document.getElementById('detailViewBackBtn');
 
 const splashScreen = document.getElementById('splashScreen');
+const splashCloseBtn = document.getElementById('splashCloseBtn');
 
 const openAdminBtn = document.getElementById('openAdminBtn');
 const adminPanel = document.getElementById('adminPanel');
@@ -1016,6 +1017,7 @@ adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
 sendWhatsappBtn.addEventListener('click', sendDesignToWhatsApp);
+if (splashCloseBtn) splashCloseBtn.addEventListener('click', () => splashScreen.classList.add('hidden'));
 
 onEnter(adminPassword, unlockAdmin);
 onEnter(newElfName, addElf);

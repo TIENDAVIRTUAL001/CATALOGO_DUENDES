@@ -74,22 +74,23 @@ h1,h2,h3,p,small{margin:0}
 .btn.soft{background:#f1f3ff;color:#31376b;border-color:#d7dcfa}
 .wa-icon{width:18px;height:18px;display:inline-block;line-height:0}
 
-.splash-screen{position:fixed;inset:0;background:#ffffff;display:flex;align-items:center;justify-content:center;z-index:10000;transition:opacity .5s ease, visibility .5s ease}
+.splash-screen{position:fixed;inset:0;background:#ffffff;display:flex;align-items:center;justify-content:center;z-index:10000;transition:opacity .5s ease, visibility .5s ease;padding:14px}
 .splash-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
-.splash-image{max-width:min(800px,90vw);max-height:90vh;object-fit:contain;animation:pulseSplash 2s infinite}
+.splash-image{max-width:min(800px,100%);max-height:90vh;object-fit:contain;animation:pulseSplash 2s infinite}
+.splash-close{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:999px;border:0;background:#f1f3ff;color:#111;font-size:1.6rem;cursor:pointer;font-weight:700;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center}
 
 .promo-section{margin-top:24px;text-align:center;padding:0 clamp(12px,2vw,22px)}
 .promo-banner-img{width:100%;max-width:860px;border-radius:16px;box-shadow:var(--shadow);transition:transform .2s ease;display:block;margin:0 auto}
 .promo-banner-img:hover{transform:scale(1.015)}
 
-.random-view{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:clamp(16px,3vw,32px);box-shadow:var(--shadow);animation:fadeIn .4s ease}
-.random-view-card{display:flex;gap:24px;align-items:center}
-.random-view-card img{width:min(300px,45%);aspect-ratio:4/5;object-fit:cover;border-radius:14px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.random-view-info{flex:1;display:flex;flex-direction:column;gap:12px}
-.random-view-info h2{color:var(--accent);font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;font-weight:800}
-.random-view-info h3{font-size:clamp(1.8rem,4vw,2.4rem);font-weight:900;line-height:1.1}
-.random-view-info p{color:var(--muted);font-size:1.05rem;margin-bottom:8px}
-.random-view-actions{display:flex;gap:10px;flex-wrap:wrap}
+.detail-view{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:clamp(16px,3vw,32px);box-shadow:var(--shadow);animation:fadeIn .4s ease}
+.detail-view-card{display:flex;gap:24px;align-items:center}
+.detail-view-card img{width:min(300px,45%);aspect-ratio:4/5;object-fit:cover;border-radius:14px;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.detail-view-info{flex:1;display:flex;flex-direction:column;gap:12px}
+.detail-view-info h2{color:var(--accent);font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+.detail-view-info h3{font-size:clamp(1.8rem,4vw,2.4rem);font-weight:900;line-height:1.1}
+.detail-view-info p{color:var(--muted);font-size:1.05rem;margin-bottom:8px}
+.detail-view-actions{display:flex;gap:10px;flex-wrap:wrap}
 
 .admin-panel{margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
 .admin-panel h3{font-size:1.05rem;margin-bottom:10px}
@@ -122,12 +123,15 @@ footer{padding:18px;text-align:center;color:var(--muted);font-size:.85rem}
 @media (max-width:940px){
   .layout{grid-template-columns:1fr}
   .editor{position:static}
-  .gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gallery{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
   .controls{max-height:none}
   .controls label{grid-template-columns:1fr}
   .searchRow{flex-direction:column;align-items:stretch}
   .searchRow input{min-width:0;width:100%}
   .editor-actions .btn{min-width:0}
+  .random-view-card{flex-direction:column;text-align:center}
+  .random-view-card img{width:100%;max-width:320px}
+  .random-view-actions{justify-content:center}
 }
 
 @media (max-width:680px){
@@ -138,9 +142,10 @@ footer{padding:18px;text-align:center;color:var(--muted);font-size:.85rem}
   .card .meta{flex-direction:column;align-items:flex-start}
   .admin-item{flex-direction:column;align-items:flex-start}
   .admin-auth input{min-width:0;width:100%}
-  .random-view-card{flex-direction:column;text-align:center}
-  .random-view-card img{width:100%;max-width:260px}
-  .random-view-actions{justify-content:center}
+  .random-view-card img{max-width:260px}
+  .detail-view-card{flex-direction:column;text-align:center}
+  .detail-view-card img{width:100%;max-width:260px}
+  .detail-view-actions{justify-content:center}
 }
 
 @keyframes fadeIn{

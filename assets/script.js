@@ -28,15 +28,15 @@ const searchInput = document.getElementById('q');
 const sortSelect = document.getElementById('sort');
 const randomElfBtn = document.getElementById('randomElfBtn');
 const catalogCount = document.getElementById('catalogCount');
-const randomModal = document.getElementById('randomModal');
-const randomImage = document.getElementById('randomImage');
-const randomName = document.getElementById('randomName');
-const randomBuyBtn = document.getElementById('randomBuyBtn');
-const randomChooseBtn = document.getElementById('randomChooseBtn');
-const randomCloseBtn = document.getElementById('randomCloseBtn');
-const splashOverlay = document.getElementById('splashOverlay');
-const splashCloseBtn = document.getElementById('splashCloseBtn');
-const contactPromo = document.getElementById('contactPromo');
+
+const galleryWrap = document.getElementById('galleryWrap');
+const randomView = document.getElementById('randomView');
+const randomViewImage = document.getElementById('randomViewImage');
+const randomViewName = document.getElementById('randomViewName');
+const randomViewBuyBtn = document.getElementById('randomViewBuyBtn');
+const randomViewBackBtn = document.getElementById('randomViewBackBtn');
+
+const splashScreen = document.getElementById('splashScreen');
 
 const openAdminBtn = document.getElementById('openAdminBtn');
 const adminPanel = document.getElementById('adminPanel');
@@ -234,29 +234,30 @@ function syncWhatsAppLinks() {
   const href = waLink(`Hola, quiero encargar el duende ${name}.`);
   if (topWhatsapp) topWhatsapp.href = href;
   if (heroWhatsapp) heroWhatsapp.href = href;
-  if (contactPromo) contactPromo.href = href;
 }
 
-function openRandomModal(elf) {
+function showRandomElf(elf) {
   randomCandidateId = elf.id;
-  randomImage.src = elf.image;
-  randomImage.alt = elf.name;
-  randomName.textContent = elf.name;
-  randomBuyBtn.href = waLink(`Hola, el duende ${elf.name} me eligió. Quiero comprarlo.`);
-  randomModal.classList.remove('hidden');
-  randomModal.setAttribute('aria-hidden', 'false');
+  randomViewImage.src = elf.image;
+  randomViewImage.alt = elf.name;
+  randomViewName.textContent = elf.name;
+  randomViewBuyBtn.href = waLink(`Hola, el duende ${elf.name} me eligió. Quiero comprarlo.`);
+  
+  galleryWrap.classList.add('hidden');
+  randomView.classList.remove('hidden');
+  
+  // Auto-select it in the customizer
+  const card = gallery.querySelector(`[data-id="${elf.id}"]`);
+  selectElf(elf.id, card);
+  
+  // Scroll to the random view
+  randomView.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function closeRandomModal() {
-  randomModal.classList.add('hidden');
-  randomModal.setAttribute('aria-hidden', 'true');
-}
-
-function chooseRandomCandidate() {
-  if (!randomCandidateId) return;
-  const card = gallery.querySelector(`[data-id="${randomCandidateId}"]`);
-  selectElf(randomCandidateId, card);
-  closeRandomModal();
+function hideRandomView() {
+  randomView.classList.add('hidden');
+  galleryWrap.classList.remove('hidden');
+  galleryWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function drawBackground(width, height) {
@@ -638,7 +639,7 @@ function refreshCatalog() {
 function chooseRandomElf() {
   if (!visibleInventory.length) return;
   const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
-  openRandomModal(random);
+  showRandomElf(random);
 }
 
 function openAdminPanel() {
@@ -813,17 +814,13 @@ initializeHatSelect();
 searchInput.addEventListener('input', refreshCatalog);
 sortSelect.addEventListener('change', refreshCatalog);
 randomElfBtn.addEventListener('click', chooseRandomElf);
-randomCloseBtn.addEventListener('click', closeRandomModal);
-randomChooseBtn.addEventListener('click', chooseRandomCandidate);
-randomModal.addEventListener('click', (event) => {
-  if (event.target === randomModal) closeRandomModal();
-});
+randomViewBackBtn.addEventListener('click', hideRandomView);
+
 openAdminBtn.addEventListener('click', openAdminPanel);
 adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
 sendWhatsappBtn.addEventListener('click', sendDesignToWhatsApp);
-splashCloseBtn.addEventListener('click', () => splashOverlay.classList.add('hidden'));
 
 onEnter(adminPassword, unlockAdmin);
 onEnter(newElfName, addElf);
@@ -834,5 +831,5 @@ syncWhatsAppLinks();
 drawCustomizer();
 
 setTimeout(() => {
-  splashOverlay.classList.add('hidden');
+  if (splashScreen) splashScreen.classList.add('hidden');
 }, 5000);

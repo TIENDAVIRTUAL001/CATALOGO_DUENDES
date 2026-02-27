@@ -21,7 +21,6 @@ const sparkle = document.getElementById('sparkle');
 const labelText = document.getElementById('labelText');
 
 const sendWhatsappBtn = document.getElementById('sendWhatsappBtn');
-const whatsappLink = document.getElementById('whatsappLink');
 const topWhatsapp = document.getElementById('topWhatsapp');
 const heroWhatsapp = document.getElementById('heroWhatsapp');
 
@@ -45,7 +44,26 @@ const adminList = document.getElementById('adminList');
 
 const PHONE = '573219170363';
 const ADMIN_PASSWORD = 'DuenDes123@@@';
-const STATE_KEY = 'duendesCatalogo.ultra.v1';
+const STATE_KEY = 'duendesCatalogo.ultra.v2';
+
+const HAT_VARIANTS = [
+  { id: 'classic', label: 'Clásico' },
+  { id: 'wide', label: 'Ancho' },
+  { id: 'night', label: 'Nocturno' },
+  { id: 'royal', label: 'Real' },
+  { id: 'wizard', label: 'Mago' },
+  { id: 'pine', label: 'Pino' },
+  { id: 'ice', label: 'Hielo' },
+  { id: 'vintage', label: 'Vintage' },
+  { id: 'pointy', label: 'Puntiagudo' },
+  { id: 'party', label: 'Fiesta' },
+  { id: 'minimal', label: 'Minimal' },
+  { id: 'floppy', label: 'Flexible' },
+  { id: 'crown', label: 'Corona' },
+  { id: 'forest', label: 'Bosque' },
+  { id: 'neon', label: 'Neón' },
+  { id: 'sunset', label: 'Atardecer' }
+];
 
 const INITIAL_DUENDES = [
   { id: 'd1', name: 'Rodolfo', image: 'IMAGENES/1.jpeg' },
@@ -75,6 +93,32 @@ let selectedElf = null;
 let activeCard = null;
 let adminUnlocked = false;
 
+function ensureRoundRect() {
+  if (CanvasRenderingContext2D.prototype.roundRect) return;
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.arcTo(x + width, y, x + width, y + height, r);
+    this.arcTo(x + width, y + height, x, y + height, r);
+    this.arcTo(x, y + height, x, y, r);
+    this.arcTo(x, y, x + width, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
+function initializeHatSelect() {
+  hatStyle.innerHTML = '';
+  HAT_VARIANTS.forEach((item, index) => {
+    const option = document.createElement('option');
+    option.value = item.id;
+    option.textContent = item.label;
+    if (index === 0) option.selected = true;
+    hatStyle.appendChild(option);
+  });
+}
+
 function loadInventory() {
   const raw = localStorage.getItem(STATE_KEY);
   if (!raw) {
@@ -84,9 +128,15 @@ function loadInventory() {
 
   try {
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [...INITIAL_DUENDES];
-    return parsed.filter((item) => item?.id && item?.name && item?.image);
+    if (!Array.isArray(parsed)) {
+      localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
+      return [...INITIAL_DUENDES];
+    }
+
+    const valid = parsed.filter((item) => item?.id && item?.name && item?.image);
+    return valid;
   } catch {
+    localStorage.setItem(STATE_KEY, JSON.stringify(INITIAL_DUENDES));
     return [...INITIAL_DUENDES];
   }
 }
@@ -105,7 +155,7 @@ function renderGallery(list) {
   if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'admin-item';
-    empty.innerHTML = '<strong>No hay duendes disponibles.</strong><small>Agrégalos desde el Panel admin.</small>';
+    empty.innerHTML = '<strong>No hay duendes disponibles.</strong><small>El admin puede restaurar los 19 por defecto.</small>';
     gallery.appendChild(empty);
     catalogCount.textContent = '0 modelos';
     return;
@@ -134,7 +184,7 @@ function renderGallery(list) {
     btn.href = waLink(`Hola, quiero información sobre el duende ${elf.name}.`);
     btn.target = '_blank';
     btn.rel = 'noopener noreferrer';
-    btn.innerHTML = '<span class="wa-icon" aria-hidden="true">💬</span><span>WhatsApp</span>';
+    btn.innerHTML = '<svg class="wa-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.57 2 2.12 6.45 2.12 11.92c0 1.75.46 3.47 1.33 4.98L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.47 0 9.93-4.45 9.93-9.92A9.94 9.94 0 0 0 12.04 2Zm0 18.18a8.3 8.3 0 0 1-4.22-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.26 8.26 0 0 1-1.27-4.4c0-4.58 3.73-8.31 8.32-8.31a8.3 8.3 0 0 1 8.31 8.31 8.3 8.3 0 0 1-8.36 8.26Zm4.56-6.18c-.25-.12-1.46-.72-1.69-.8-.23-.08-.39-.12-.56.12-.16.25-.64.8-.78.96-.14.16-.28.18-.53.06-.25-.12-1.05-.39-2-1.24-.73-.65-1.23-1.45-1.37-1.69-.14-.25-.02-.38.1-.5.11-.11.25-.28.37-.41.12-.14.16-.25.24-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.41-.56-.42l-.48-.01c-.16 0-.43.06-.65.31-.22.25-.84.82-.84 1.99 0 1.17.86 2.31.98 2.47.12.16 1.69 2.58 4.1 3.62.57.25 1.01.39 1.36.5.57.18 1.09.16 1.5.1.46-.07 1.46-.6 1.67-1.18.2-.58.2-1.08.14-1.18-.06-.1-.22-.16-.47-.29Z"/></svg><span>WhatsApp</span>';
 
     actions.appendChild(btn);
     meta.appendChild(name);
@@ -171,10 +221,7 @@ function selectElf(id, card) {
 
 function syncWhatsAppLinks() {
   const name = labelText.value?.trim() || selectedElf?.name || 'duende personalizado';
-  const message = `Hola, quiero encargar el duende ${name}.`;
-  const href = waLink(message);
-
-  if (whatsappLink) whatsappLink.href = href;
+  const href = waLink(`Hola, quiero encargar el duende ${name}.`);
   if (topWhatsapp) topWhatsapp.href = href;
   if (heroWhatsapp) heroWhatsapp.href = href;
 }
@@ -205,37 +252,62 @@ function drawBackground(width, height) {
 }
 
 function drawHat(centerX) {
+  const style = hatStyle.value;
   ctx.fillStyle = hatColor.value;
 
-  if (hatStyle.value === 'wide') {
-    ctx.beginPath();
-    ctx.ellipse(centerX, 122, 95, 24, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(centerX - 72, 116);
-    ctx.lineTo(centerX + 72, 116);
-    ctx.lineTo(centerX, 34);
-    ctx.closePath();
-    ctx.fill();
-  } else if (hatStyle.value === 'night') {
-    ctx.beginPath();
-    ctx.moveTo(centerX - 58, 122);
-    ctx.quadraticCurveTo(centerX + 105, 98, centerX + 16, 18);
-    ctx.quadraticCurveTo(centerX - 26, 60, centerX - 58, 122);
-    ctx.fill();
+  if (style === 'wide') {
+    ctx.ellipse(centerX, 122, 95, 24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(centerX - 72, 116); ctx.lineTo(centerX + 72, 116); ctx.lineTo(centerX, 34); ctx.closePath(); ctx.fill();
+  } else if (style === 'night') {
+    ctx.beginPath(); ctx.moveTo(centerX - 58, 122); ctx.quadraticCurveTo(centerX + 105, 98, centerX + 16, 18); ctx.quadraticCurveTo(centerX - 26, 60, centerX - 58, 122); ctx.fill();
+  } else if (style === 'royal') {
+    ctx.beginPath(); ctx.moveTo(centerX - 78, 122); ctx.lineTo(centerX + 78, 122); ctx.lineTo(centerX + 44, 36); ctx.lineTo(centerX - 44, 36); ctx.closePath(); ctx.fill();
+  } else if (style === 'wizard') {
+    ctx.beginPath(); ctx.moveTo(centerX - 60, 122); ctx.lineTo(centerX + 60, 122); ctx.lineTo(centerX - 10, 18); ctx.closePath(); ctx.fill();
+  } else if (style === 'pine') {
+    ctx.beginPath(); ctx.moveTo(centerX - 70, 122); ctx.lineTo(centerX + 70, 122); ctx.lineTo(centerX, 32); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(centerX - 6, 40, 12, 12);
+    ctx.fillStyle = hatColor.value;
+  } else if (style === 'ice') {
+    ctx.globalAlpha = .85;
+    ctx.beginPath(); ctx.moveTo(centerX - 84, 122); ctx.lineTo(centerX + 84, 122); ctx.lineTo(centerX, 26); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+  } else if (style === 'vintage') {
+    ctx.beginPath(); ctx.ellipse(centerX, 124, 82, 20, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(centerX - 44, 56, 88, 64);
+  } else if (style === 'pointy') {
+    ctx.beginPath(); ctx.moveTo(centerX - 50, 122); ctx.lineTo(centerX + 50, 122); ctx.lineTo(centerX, 8); ctx.closePath(); ctx.fill();
+  } else if (style === 'party') {
+    ctx.beginPath(); ctx.moveTo(centerX - 64, 122); ctx.lineTo(centerX + 64, 122); ctx.lineTo(centerX, 26); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(centerX, 22, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = hatColor.value;
+  } else if (style === 'minimal') {
+    ctx.fillRect(centerX - 60, 56, 120, 66);
+  } else if (style === 'floppy') {
+    ctx.beginPath(); ctx.ellipse(centerX, 122, 92, 24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(centerX - 54, 122); ctx.quadraticCurveTo(centerX + 16, 24, centerX + 60, 118); ctx.closePath(); ctx.fill();
+  } else if (style === 'crown') {
+    ctx.beginPath(); ctx.moveTo(centerX - 78, 122); ctx.lineTo(centerX - 46, 66); ctx.lineTo(centerX - 18, 122); ctx.lineTo(centerX, 58); ctx.lineTo(centerX + 18, 122); ctx.lineTo(centerX + 46, 66); ctx.lineTo(centerX + 78, 122); ctx.closePath(); ctx.fill();
+  } else if (style === 'forest') {
+    ctx.beginPath(); ctx.moveTo(centerX - 72, 122); ctx.lineTo(centerX + 72, 122); ctx.lineTo(centerX + 8, 30); ctx.closePath(); ctx.fill();
+  } else if (style === 'neon') {
+    ctx.shadowColor = hatColor.value;
+    ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.moveTo(centerX - 68, 122); ctx.lineTo(centerX + 68, 122); ctx.lineTo(centerX, 28); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+  } else if (style === 'sunset') {
+    const grad = ctx.createLinearGradient(centerX - 70, 30, centerX + 70, 122);
+    grad.addColorStop(0, '#ff8f5a');
+    grad.addColorStop(1, hatColor.value);
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.moveTo(centerX - 70, 122); ctx.lineTo(centerX + 70, 122); ctx.lineTo(centerX, 26); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = hatColor.value;
   } else {
-    ctx.beginPath();
-    ctx.moveTo(centerX - 90, 120);
-    ctx.lineTo(centerX + 90, 120);
-    ctx.lineTo(centerX, 20);
-    ctx.closePath();
-    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(centerX - 90, 120); ctx.lineTo(centerX + 90, 120); ctx.lineTo(centerX, 20); ctx.closePath(); ctx.fill();
   }
 
   ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.roundRect(centerX - 90, 116, 180, 24, 10);
-  ctx.fill();
+  ctx.roundRect(centerX - 90, 116, 180, 24, 10); ctx.fill();
 }
 
 function drawEyes(centerX) {
@@ -248,49 +320,40 @@ function drawEyes(centerX) {
   ctx.lineWidth = 3;
 
   if (eyeStyle.value === 'happy') {
-    ctx.beginPath();
-    ctx.arc(leftX, y, 10, Math.PI, 0);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(rightX, y, 10, Math.PI, 0);
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(leftX, y, 10, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(rightX, y, 10, Math.PI, 0); ctx.stroke();
     return;
   }
 
   if (eyeStyle.value === 'sleepy') {
-    ctx.beginPath();
-    ctx.moveTo(leftX - 11, y);
-    ctx.lineTo(leftX + 11, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(rightX - 11, y);
-    ctx.lineTo(rightX + 11, y);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(leftX - 11, y); ctx.lineTo(leftX + 11, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rightX - 11, y); ctx.lineTo(rightX + 11, y); ctx.stroke();
     return;
   }
 
   if (eyeStyle.value === 'wink') {
-    ctx.beginPath();
-    ctx.moveTo(leftX - 10, y);
-    ctx.lineTo(leftX + 10, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(rightX, y, 6, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(leftX - 10, y); ctx.lineTo(leftX + 10, y); ctx.stroke();
+    ctx.beginPath(); ctx.arc(rightX, y, 6, 0, Math.PI * 2); ctx.fill();
     return;
   }
 
-  ctx.beginPath();
-  ctx.arc(leftX, y, 6, 0, Math.PI * 2);
-  ctx.arc(rightX, y, 6, 0, Math.PI * 2);
-  ctx.fill();
+  if (eyeStyle.value === 'spark') {
+    ctx.beginPath(); ctx.arc(leftX, y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(rightX, y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(leftX + 2, y - 2, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(rightX + 2, y - 2, 2, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  ctx.beginPath(); ctx.arc(leftX, y, 6, 0, Math.PI * 2); ctx.arc(rightX, y, 6, 0, Math.PI * 2); ctx.fill();
 }
 
 function drawBrows(centerX) {
   const style = browStyle.value;
   const y = 138;
   const thickness = style === 'thick' ? 5 : style === 'soft' ? 2 : 3;
-  const angle = style === 'soft' ? 4 : 9;
+  const angle = style === 'soft' ? 4 : style === 'angry' ? -2 : 9;
 
   ctx.strokeStyle = '#3d2b1f';
   ctx.lineWidth = thickness;
@@ -305,53 +368,56 @@ function drawBrows(centerX) {
 function drawMouth(centerX) {
   if (mouthStyle.value === 'open') {
     ctx.fillStyle = '#b02a2a';
-    ctx.beginPath();
-    ctx.ellipse(centerX, 198, 14, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(centerX, 198, 14, 10, 0, 0, Math.PI * 2); ctx.fill();
     return;
   }
 
   if (mouthStyle.value === 'mustache') {
     ctx.fillStyle = '#593f2a';
-    ctx.beginPath();
-    ctx.ellipse(centerX - 11, 192, 14, 6, -0.3, 0, Math.PI * 2);
-    ctx.ellipse(centerX + 11, 192, 14, 6, 0.3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(centerX - 11, 192, 14, 6, -0.3, 0, Math.PI * 2); ctx.ellipse(centerX + 11, 192, 14, 6, 0.3, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (mouthStyle.value === 'cute') {
+    ctx.strokeStyle = '#8e295c';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(centerX, 196, 8, 0.2, Math.PI - 0.2); ctx.stroke();
     return;
   }
 
   ctx.strokeStyle = '#6f2b2b';
   ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(centerX, 195, 18, 0.1, Math.PI - 0.1);
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(centerX, 195, 18, 0.1, Math.PI - 0.1); ctx.stroke();
 }
 
 function drawCloth(centerX) {
   ctx.fillStyle = clothColor.value;
-  ctx.beginPath();
-  ctx.roundRect(centerX - 95, 205, 190, 160, 30);
-  ctx.fill();
+  ctx.roundRect(centerX - 95, 205, 190, 160, 30); ctx.fill();
 
   if (clothPattern.value === 'stripes') {
     ctx.strokeStyle = 'rgba(255,255,255,.35)';
     ctx.lineWidth = 4;
     for (let x = centerX - 80; x < centerX + 90; x += 22) {
-      ctx.beginPath();
-      ctx.moveTo(x, 214);
-      ctx.lineTo(x, 358);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, 214); ctx.lineTo(x, 358); ctx.stroke();
     }
-  }
-
-  if (clothPattern.value === 'dots') {
+  } else if (clothPattern.value === 'dots') {
     ctx.fillStyle = 'rgba(255,255,255,.35)';
     for (let y = 225; y < 350; y += 26) {
       for (let x = centerX - 78; x < centerX + 84; x += 26) {
-        ctx.beginPath();
-        ctx.arc(x, y, 3.4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, 3.4, 0, Math.PI * 2); ctx.fill();
       }
+    }
+  } else if (clothPattern.value === 'diamond') {
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 2;
+    for (let y = 220; y < 360; y += 26) {
+      ctx.beginPath();
+      ctx.moveTo(centerX - 90, y);
+      ctx.lineTo(centerX - 40, y - 16);
+      ctx.lineTo(centerX + 10, y);
+      ctx.lineTo(centerX + 60, y - 16);
+      ctx.lineTo(centerX + 95, y);
+      ctx.stroke();
     }
   }
 }
@@ -361,8 +427,17 @@ function drawBeard(centerX) {
 
   ctx.fillStyle = '#fbfbfb';
   if (beardStyle.value === 'short') {
+    ctx.beginPath(); ctx.ellipse(centerX, 240, 64, 40, 0, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (beardStyle.value === 'royal') {
     ctx.beginPath();
-    ctx.ellipse(centerX, 240, 64, 40, 0, 0, Math.PI * 2);
+    ctx.moveTo(centerX - 66, 210);
+    ctx.quadraticCurveTo(centerX - 92, 285, centerX - 18, 330);
+    ctx.quadraticCurveTo(centerX, 340, centerX + 18, 330);
+    ctx.quadraticCurveTo(centerX + 92, 285, centerX + 66, 210);
+    ctx.closePath();
     ctx.fill();
     return;
   }
@@ -386,13 +461,23 @@ function drawAccessory(centerX) {
 
   if (accessory.value === 'bell') {
     ctx.fillStyle = '#f4d03f';
-    ctx.beginPath();
-    ctx.arc(centerX + 68, 56, 12, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(centerX + 68, 56, 12, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#9c7d18';
-    ctx.beginPath();
-    ctx.arc(centerX + 68, 61, 3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(centerX + 68, 61, 3, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (accessory.value === 'snow') {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+      const x = centerX + 54 + i * 10;
+      const y = 48 + i * 5;
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y);
+      ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5);
+      ctx.stroke();
+    }
     return;
   }
 
@@ -426,12 +511,18 @@ function drawFrame(width, height) {
   if (frameStyle.value === 'gold') {
     ctx.strokeStyle = '#d4af37';
     ctx.lineWidth = 12;
+  } else if (frameStyle.value === 'neon') {
+    ctx.strokeStyle = '#86f7ff';
+    ctx.lineWidth = 10;
+    ctx.shadowColor = '#86f7ff';
+    ctx.shadowBlur = 12;
   } else {
     ctx.strokeStyle = 'rgba(255,255,255,.75)';
     ctx.lineWidth = 10;
   }
 
   ctx.strokeRect(6, 6, width - 12, height - 12);
+  ctx.shadowBlur = 0;
 }
 
 function drawSparkles(width, height) {
@@ -444,9 +535,7 @@ function drawSparkles(width, height) {
     const x = ((i * 53) % (width - 20)) + 10;
     const y = ((i * 37) % (height - 20)) + 10;
     const r = (i % 3) + 1;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   }
 }
 
@@ -460,14 +549,10 @@ function drawCustomizer() {
   drawCloth(centerX);
 
   ctx.fillStyle = skinColor.value;
-  ctx.beginPath();
-  ctx.arc(centerX, 165, 72, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(centerX, 165, 72, 0, Math.PI * 2); ctx.fill();
 
   ctx.fillStyle = '#e0ad84';
-  ctx.beginPath();
-  ctx.ellipse(centerX, 185, 40, 14, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(centerX, 185, 40, 14, 0, 0, Math.PI * 2); ctx.fill();
 
   drawBrows(centerX);
   drawEyes(centerX);
@@ -620,7 +705,7 @@ function deleteElf(id) {
 function resetCatalog() {
   if (!adminUnlocked) return;
 
-  const ok = confirm('Esto restaura solo el catálogo inicial de imágenes base. ¿Deseas continuar?');
+  const ok = confirm('Esto restaura los 19 duendes por defecto. ¿Deseas continuar?');
   if (!ok) return;
 
   inventory = [...INITIAL_DUENDES];
@@ -640,11 +725,7 @@ async function sendDesignToWhatsApp() {
     const file = new File([blob], `${name.replace(/\s+/g, '-')}.png`, { type: 'image/png' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        text,
-        title: 'Mi duende personalizado'
-      });
+      await navigator.share({ files: [file], text, title: 'Mi duende personalizado' });
       return;
     }
   } catch {
@@ -657,8 +738,8 @@ async function sendDesignToWhatsApp() {
   download.click();
   download.remove();
 
-  window.open(waLink(`${text}. Te envío la imagen adjunta.`), '_blank');
-  alert('Tu imagen se descargó. Adjunta ese archivo en WhatsApp para enviarlo.');
+  window.open(waLink(`${text}. Te adjunto la imagen en el siguiente mensaje.`), '_blank');
+  alert('Se descargó la imagen de tu diseño. Adjunta ese archivo en WhatsApp.');
 }
 
 function bindInputRepaint(input) {
@@ -667,6 +748,15 @@ function bindInputRepaint(input) {
     drawCustomizer();
   });
 }
+
+function onEnter(element, fn) {
+  element.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') fn();
+  });
+}
+
+ensureRoundRect();
+initializeHatSelect();
 
 [
   bgColor,
@@ -696,12 +786,6 @@ adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
 sendWhatsappBtn.addEventListener('click', sendDesignToWhatsApp);
-
-function onEnter(element, fn) {
-  element.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') fn();
-  });
-}
 
 onEnter(adminPassword, unlockAdmin);
 onEnter(newElfName, addElf);

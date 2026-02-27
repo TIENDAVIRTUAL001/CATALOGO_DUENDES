@@ -2,9 +2,6 @@ const gallery = document.getElementById('gallery');
 const canvas = document.getElementById('preview');
 const ctx = canvas.getContext('2d');
 
-const bgColor = document.getElementById('bgColor');
-const bgColor2 = document.getElementById('bgColor2');
-const bgStyle = document.getElementById('bgStyle');
 const skinColor = document.getElementById('skinColor');
 const hatColor = document.getElementById('hatColor');
 const hatStyle = document.getElementById('hatStyle');
@@ -30,11 +27,11 @@ const randomElfBtn = document.getElementById('randomElfBtn');
 const catalogCount = document.getElementById('catalogCount');
 
 const galleryWrap = document.getElementById('galleryWrap');
-const randomView = document.getElementById('randomView');
-const randomViewImage = document.getElementById('randomViewImage');
-const randomViewName = document.getElementById('randomViewName');
-const randomViewBuyBtn = document.getElementById('randomViewBuyBtn');
-const randomViewBackBtn = document.getElementById('randomViewBackBtn');
+const detailView = document.getElementById('detailView');
+const detailViewImage = document.getElementById('detailViewImage');
+const detailViewName = document.getElementById('detailViewName');
+const detailViewBuyBtn = document.getElementById('detailViewBuyBtn');
+const detailViewBackBtn = document.getElementById('detailViewBackBtn');
 
 const splashScreen = document.getElementById('splashScreen');
 
@@ -227,6 +224,7 @@ function selectElf(id, card) {
 
   syncWhatsAppLinks();
   drawCustomizer();
+  showDetailView(match);
 }
 
 function syncWhatsAppLinks() {
@@ -236,52 +234,31 @@ function syncWhatsAppLinks() {
   if (heroWhatsapp) heroWhatsapp.href = href;
 }
 
-function showRandomElf(elf) {
+function showDetailView(elf) {
   randomCandidateId = elf.id;
-  randomViewImage.src = elf.image;
-  randomViewImage.alt = elf.name;
-  randomViewName.textContent = elf.name;
-  randomViewBuyBtn.href = waLink(`Hola, el duende ${elf.name} me eligió. Quiero comprarlo.`);
+  detailViewImage.src = elf.image;
+  detailViewImage.alt = elf.name;
+  detailViewName.textContent = elf.name;
+  detailViewBuyBtn.href = waLink(`Hola, quiero comprar el duende ${elf.name}.`);
   
   galleryWrap.classList.add('hidden');
-  randomView.classList.remove('hidden');
+  detailView.classList.remove('hidden');
   
-  // Auto-select it in the customizer
-  const card = gallery.querySelector(`[data-id="${elf.id}"]`);
-  selectElf(elf.id, card);
-  
-  // Scroll to the random view
-  randomView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll to the detail view
+  detailView.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function hideRandomView() {
-  randomView.classList.add('hidden');
+function hideDetailView() {
+  detailView.classList.add('hidden');
   galleryWrap.classList.remove('hidden');
   galleryWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function drawBackground(width, height) {
-  if (bgStyle.value === 'gradient') {
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, bgColor.value);
-    gradient.addColorStop(1, bgColor2.value);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    return;
-  }
-
-  if (bgStyle.value === 'spotlight') {
-    ctx.fillStyle = bgColor2.value;
-    ctx.fillRect(0, 0, width, height);
-    const light = ctx.createRadialGradient(width / 2, height / 3, 20, width / 2, height / 2, 220);
-    light.addColorStop(0, bgColor.value);
-    light.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = light;
-    ctx.fillRect(0, 0, width, height);
-    return;
-  }
-
-  ctx.fillStyle = bgColor.value;
+  const gradient = ctx.createRadialGradient(width / 2, height / 3, 20, width / 2, height / 2, 250);
+  gradient.addColorStop(0, '#ffffff');
+  gradient.addColorStop(1, '#eef2ff');
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 }
 
@@ -380,6 +357,47 @@ function drawEyes(centerX) {
     return;
   }
 
+  if (eyeStyle.value === 'crazy') {
+    ctx.beginPath(); ctx.arc(leftX, y, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(rightX, y, 4, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (eyeStyle.value === 'cute') {
+    ctx.beginPath(); ctx.arc(leftX, y, 10, 0, Math.PI * 2); ctx.arc(rightX, y, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(leftX - 2, y - 2, 3, 0, Math.PI * 2); ctx.arc(rightX - 2, y - 2, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(leftX + 3, y + 3, 1.5, 0, Math.PI * 2); ctx.arc(rightX + 3, y + 3, 1.5, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (eyeStyle.value === 'glasses') {
+    ctx.beginPath(); ctx.arc(leftX, y, 4, 0, Math.PI * 2); ctx.arc(rightX, y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(leftX, y, 12, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(rightX, y, 12, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(leftX + 12, y); ctx.lineTo(rightX - 12, y); ctx.stroke();
+    return;
+  }
+
+  if (eyeStyle.value === 'sunglasses') {
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.roundRect(leftX - 14, y - 8, 28, 16, 4); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(rightX - 14, y - 8, 28, 16, 4); ctx.fill();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(leftX + 14, y - 2); ctx.lineTo(rightX - 14, y - 2); ctx.stroke();
+    return;
+  }
+
+  if (eyeStyle.value === 'pirate') {
+    ctx.beginPath(); ctx.arc(leftX, y, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(rightX, y, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(centerX - 10, y - 18); ctx.lineTo(rightX + 18, y + 10); ctx.stroke();
+    return;
+  }
+
   ctx.beginPath(); ctx.arc(leftX, y, 6, 0, Math.PI * 2); ctx.arc(rightX, y, 6, 0, Math.PI * 2); ctx.fill();
 }
 
@@ -388,6 +406,26 @@ function drawBrows(centerX) {
   const y = 138;
   const thickness = style === 'thick' ? 5 : style === 'soft' ? 2 : 3;
   const angle = style === 'soft' ? 4 : style === 'angry' ? -2 : 9;
+
+  if (style === 'unibrow') {
+    ctx.strokeStyle = '#3d2b1f'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(centerX - 35, y + 4); ctx.lineTo(centerX + 35, y + 4); ctx.stroke();
+    return;
+  }
+
+  if (style === 'sad') {
+    ctx.strokeStyle = '#3d2b1f'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(centerX - 35, y + 8); ctx.lineTo(centerX - 10, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(centerX + 10, y); ctx.lineTo(centerX + 35, y + 8); ctx.stroke();
+    return;
+  }
+
+  if (style === 'surprised') {
+    ctx.strokeStyle = '#3d2b1f'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(centerX - 35, y + 4); ctx.quadraticCurveTo(centerX - 22, y - 10, centerX - 10, y + 4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(centerX + 10, y + 4); ctx.quadraticCurveTo(centerX + 22, y - 10, centerX + 35, y + 4); ctx.stroke();
+    return;
+  }
 
   ctx.strokeStyle = '#3d2b1f';
   ctx.lineWidth = thickness;
@@ -416,6 +454,34 @@ function drawMouth(centerX) {
     ctx.strokeStyle = '#8e295c';
     ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(centerX, 196, 8, 0.2, Math.PI - 0.2); ctx.stroke();
+    return;
+  }
+
+  if (mouthStyle.value === 'teeth') {
+    ctx.fillStyle = '#b02a2a';
+    ctx.beginPath(); ctx.arc(centerX, 195, 16, 0, Math.PI); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(centerX - 10, 195, 20, 6);
+    return;
+  }
+
+  if (mouthStyle.value === 'tongue') {
+    ctx.fillStyle = '#b02a2a';
+    ctx.beginPath(); ctx.arc(centerX, 195, 12, 0, Math.PI); ctx.fill();
+    ctx.fillStyle = '#ff7b9c';
+    ctx.beginPath(); ctx.arc(centerX + 4, 202, 6, 0, Math.PI); ctx.fill();
+    return;
+  }
+
+  if (mouthStyle.value === 'kiss') {
+    ctx.strokeStyle = '#8e295c'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(centerX, 196, 4, 0, Math.PI * 2); ctx.stroke();
+    return;
+  }
+
+  if (mouthStyle.value === 'sad') {
+    ctx.strokeStyle = '#6f2b2b'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(centerX, 205, 14, Math.PI + 0.2, Math.PI * 2 - 0.2); ctx.stroke();
     return;
   }
 
@@ -453,6 +519,42 @@ function drawCloth(centerX) {
       ctx.lineTo(centerX + 95, y);
       ctx.stroke();
     }
+  } else if (clothPattern.value === 'plaid') {
+    ctx.strokeStyle = 'rgba(255,255,255,.2)';
+    ctx.lineWidth = 4;
+    for (let x = centerX - 80; x < centerX + 90; x += 20) {
+      ctx.beginPath(); ctx.moveTo(x, 205); ctx.lineTo(x, 365); ctx.stroke();
+    }
+    for (let y = 210; y < 360; y += 20) {
+      ctx.beginPath(); ctx.moveTo(centerX - 95, y); ctx.lineTo(centerX + 95, y); ctx.stroke();
+    }
+  } else if (clothPattern.value === 'zigzag') {
+    ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.lineWidth = 3;
+    for (let y = 220; y < 360; y += 30) {
+      ctx.beginPath();
+      for (let x = centerX - 90; x <= centerX + 90; x += 15) {
+        ctx.lineTo(x, y + ((x - (centerX - 90)) / 15 % 2 === 0 ? 0 : 15));
+      }
+      ctx.stroke();
+    }
+  } else if (clothPattern.value === 'waves') {
+    ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.lineWidth = 3;
+    for (let y = 220; y < 360; y += 25) {
+      ctx.beginPath();
+      for (let x = centerX - 90; x <= centerX + 90; x += 10) {
+        ctx.lineTo(x, y + Math.sin(x * 0.1) * 8);
+      }
+      ctx.stroke();
+    }
+  } else if (clothPattern.value === 'stars') {
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    for (let y = 230; y < 350; y += 40) {
+      for (let x = centerX - 70; x < centerX + 80; x += 40) {
+        drawStar(x + (y % 80 === 0 ? 20 : 0), y, 5, 6, 2);
+      }
+    }
   }
 }
 
@@ -472,6 +574,40 @@ function drawBeard(centerX) {
     ctx.quadraticCurveTo(centerX, 340, centerX + 18, 330);
     ctx.quadraticCurveTo(centerX + 92, 285, centerX + 66, 210);
     ctx.closePath();
+    ctx.fill();
+    return;
+  }
+
+  if (beardStyle.value === 'goatee') {
+    ctx.beginPath(); ctx.arc(centerX, 225, 15, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (beardStyle.value === 'stubble') {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    for (let i = 0; i < 40; i++) {
+      let bx = centerX - 40 + Math.random() * 80;
+      let by = 205 + Math.random() * 30;
+      if (Math.pow(bx - centerX, 2) / 1600 + Math.pow(by - 215, 2) / 900 <= 1) {
+        ctx.beginPath(); ctx.arc(bx, by, 1, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    return;
+  }
+
+  if (beardStyle.value === 'wizard') {
+    ctx.beginPath(); ctx.moveTo(centerX - 50, 205);
+    ctx.lineTo(centerX + 50, 205);
+    ctx.lineTo(centerX, 360);
+    ctx.closePath(); ctx.fill();
+    return;
+  }
+
+  if (beardStyle.value === 'curly') {
+    ctx.beginPath();
+    ctx.arc(centerX - 40, 220, 25, 0, Math.PI * 2);
+    ctx.arc(centerX, 235, 30, 0, Math.PI * 2);
+    ctx.arc(centerX + 40, 220, 25, 0, Math.PI * 2);
     ctx.fill();
     return;
   }
@@ -515,6 +651,49 @@ function drawAccessory(centerX) {
     return;
   }
 
+  if (accessory.value === 'flower') {
+    ctx.fillStyle = '#ff6b6b';
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath(); ctx.arc(centerX + 68 + Math.cos(i * Math.PI * 2 / 5) * 8, 56 + Math.sin(i * Math.PI * 2 / 5) * 8, 6, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#feca57';
+    ctx.beginPath(); ctx.arc(centerX + 68, 56, 5, 0, Math.PI * 2); ctx.fill();
+    return;
+  }
+
+  if (accessory.value === 'candy') {
+    ctx.fillStyle = '#ff9ff3';
+    ctx.beginPath(); ctx.arc(centerX + 68, 56, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(centerX + 58, 56); ctx.lineTo(centerX + 48, 46); ctx.lineTo(centerX + 48, 66); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(centerX + 78, 56); ctx.lineTo(centerX + 88, 46); ctx.lineTo(centerX + 88, 66); ctx.fill();
+    return;
+  }
+
+  if (accessory.value === 'gift') {
+    ctx.fillStyle = '#ff4757';
+    ctx.fillRect(centerX + 58, 46, 20, 20);
+    ctx.fillStyle = '#feca57';
+    ctx.fillRect(centerX + 66, 46, 4, 20);
+    ctx.fillRect(centerX + 58, 54, 20, 4);
+    return;
+  }
+
+  if (accessory.value === 'magic_wand') {
+    ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(centerX + 68, 76); ctx.lineTo(centerX + 88, 36); ctx.stroke();
+    ctx.fillStyle = '#feca57';
+    drawStar(centerX + 88, 36, 5, 8, 4);
+    return;
+  }
+
+  if (accessory.value === 'pipe') {
+    ctx.fillStyle = '#8b4513';
+    ctx.beginPath(); ctx.arc(centerX + 68, 66, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(centerX + 68, 66); ctx.quadraticCurveTo(centerX + 50, 76, centerX + 40, 66); ctx.stroke();
+    return;
+  }
+
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath();
   ctx.moveTo(centerX + 68, 58);
@@ -550,6 +729,24 @@ function drawFrame(width, height) {
     ctx.lineWidth = 10;
     ctx.shadowColor = '#86f7ff';
     ctx.shadowBlur = 12;
+  } else if (frameStyle.value === 'wood') {
+    ctx.strokeStyle = '#8b4513';
+    ctx.lineWidth = 16;
+  } else if (frameStyle.value === 'silver') {
+    ctx.strokeStyle = '#bdc3c7';
+    ctx.lineWidth = 12;
+    ctx.shadowColor = '#7f8c8d';
+    ctx.shadowBlur = 5;
+  } else if (frameStyle.value === 'fire') {
+    ctx.strokeStyle = '#ff4757';
+    ctx.lineWidth = 10;
+    ctx.shadowColor = '#ffa502';
+    ctx.shadowBlur = 15;
+  } else if (frameStyle.value === 'ice') {
+    ctx.strokeStyle = 'rgba(116, 185, 255, 0.6)';
+    ctx.lineWidth = 14;
+    ctx.shadowColor = '#0984e3';
+    ctx.shadowBlur = 10;
   } else {
     ctx.strokeStyle = 'rgba(255,255,255,.75)';
     ctx.lineWidth = 10;
@@ -639,7 +836,8 @@ function refreshCatalog() {
 function chooseRandomElf() {
   if (!visibleInventory.length) return;
   const random = visibleInventory[Math.floor(Math.random() * visibleInventory.length)];
-  showRandomElf(random);
+  const card = gallery.querySelector(`[data-id="${random.id}"]`);
+  selectElf(random.id, card);
 }
 
 function openAdminPanel() {
@@ -792,9 +990,6 @@ ensureRoundRect();
 initializeHatSelect();
 
 [
-  bgColor,
-  bgColor2,
-  bgStyle,
   skinColor,
   hatColor,
   hatStyle,
@@ -814,7 +1009,7 @@ initializeHatSelect();
 searchInput.addEventListener('input', refreshCatalog);
 sortSelect.addEventListener('change', refreshCatalog);
 randomElfBtn.addEventListener('click', chooseRandomElf);
-randomViewBackBtn.addEventListener('click', hideRandomView);
+detailViewBackBtn.addEventListener('click', hideDetailView);
 
 openAdminBtn.addEventListener('click', openAdminPanel);
 adminLoginBtn.addEventListener('click', unlockAdmin);

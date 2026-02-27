@@ -93,6 +93,8 @@ h1,h2,h3,p,small{margin:0}
 
 .admin-panel{margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
 .admin-panel h3{font-size:1.05rem;margin-bottom:10px}
+.admin-warning{background:#fff4e5;border:1px solid #ffe0b2;color:#e65100;padding:12px;border-radius:10px;margin-bottom:14px;font-size:.88rem}
+.admin-warning strong{display:block;margin-bottom:4px}
 .admin-auth{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .admin-auth input{border:1px solid var(--border);border-radius:10px;padding:9px 11px;min-width:260px}
 .admin-content{margin-top:12px}

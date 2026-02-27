@@ -16,34 +16,49 @@
         <img src="logo/logo.png" alt="Logo catálogo de duendes" class="brand-logo">
         <div>
           <h1>Catálogo de Duendes</h1>
-          <small>Edición personalizada y pedidos por WhatsApp</small>
+          <small>Diseño premium · Personalización interactiva · Pedidos por WhatsApp</small>
         </div>
       </div>
       <div class="header-actions">
-        <a id="topWhatsapp" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
-        <button id="openAdminBtn" class="btn" type="button">Panel admin</button>
+        <button id="openAdminBtn" class="btn soft" type="button">Panel admin</button>
+        <a id="topWhatsapp" class="btn whatsapp" target="_blank" rel="noopener noreferrer">
+          <span class="wa-icon" aria-hidden="true">💬</span>
+          <span>Pedir por WhatsApp</span>
+        </a>
       </div>
     </div>
   </header>
 
   <section class="hero container">
-    <h2>Encuentra tu duende ideal</h2>
-    <p class="lead">Selecciona un modelo, personaliza su estilo y descarga una vista previa de tu diseño.</p>
-    <div class="hero-actions">
-      <button id="randomElfBtn" class="btn primary" type="button">Deja que un duende te elija</button>
-    </div>
-    <div class="searchRow">
-      <input id="q" type="search" placeholder="Buscar por nombre del duende (ej: Rodolfo)">
-      <select id="sort" aria-label="Ordenar catálogo">
-        <option value="default">Orden original</option>
-        <option value="name">Ordenar por nombre</option>
-      </select>
+    <div class="hero-card">
+      <h2>Tu colección mágica de duendes</h2>
+      <p class="lead">Elige un duende de tu catálogo, personalízalo al instante y envía el pedido con estilo profesional.</p>
+      <div class="hero-actions">
+        <button id="randomElfBtn" class="btn primary" type="button">✨ Deja que un duende te elija</button>
+        <a id="heroWhatsapp" class="btn whatsapp" target="_blank" rel="noopener noreferrer">
+          <span class="wa-icon" aria-hidden="true">💬</span>
+          <span>Comprar por WhatsApp</span>
+        </a>
+      </div>
+      <div class="searchRow">
+        <input id="q" type="search" placeholder="Buscar por nombre del duende (ej: Rodolfo)">
+        <select id="sort" aria-label="Ordenar catálogo">
+          <option value="default">Orden original</option>
+          <option value="name">Ordenar por nombre</option>
+        </select>
+      </div>
     </div>
   </section>
 
   <main class="container layout">
-    <section class="gallery" id="gallery" aria-label="Galería de duendes">
+    <section class="gallery-wrap" aria-label="Galería de duendes">
+      <div class="section-head">
+        <h3>Duendes disponibles</h3>
+        <small id="catalogCount">0 modelos</small>
+      </div>
+      <section class="gallery" id="gallery" aria-label="Galería de duendes">
       <!-- Cards se insertan dinámicamente -->
+      </section>
     </section>
 
     <aside class="editor" id="editor">
@@ -82,7 +97,10 @@
         </label>
         <div class="editor-actions">
           <button id="downloadBtn" class="btn primary" type="button">Descargar imagen</button>
-          <a id="whatsappLink" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+          <a id="whatsappLink" class="btn whatsapp" target="_blank" rel="noopener noreferrer">
+            <span class="wa-icon" aria-hidden="true">💬</span>
+            <span>Contactar por WhatsApp</span>
+          </a>
         </div>
       </div>
     </aside>
@@ -101,7 +119,7 @@
         <input type="url" id="newElfImage" placeholder="URL de imagen (opcional)">
         <input type="file" id="newElfFile" accept="image/*">
         <button id="addElfBtn" class="btn" type="button">Añadir duende</button>
-        <button id="resetCatalogBtn" class="btn" type="button">Restablecer catálogo base</button>
+        <button id="resetCatalogBtn" class="btn soft" type="button">Restablecer catálogo base</button>
       </div>
       <div id="adminList" class="admin-list"></div>
     </div>

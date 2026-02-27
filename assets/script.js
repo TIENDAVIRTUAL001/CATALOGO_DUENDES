@@ -1,6 +1,7 @@
 const gallery = document.getElementById('gallery');
 const canvas = document.getElementById('preview');
 const ctx = canvas.getContext('2d');
+
 const bgColor = document.getElementById('bgColor');
 const skinColor = document.getElementById('skinColor');
 const hatColor = document.getElementById('hatColor');
@@ -12,10 +13,13 @@ const accessory = document.getElementById('accessory');
 const labelText = document.getElementById('labelText');
 const downloadBtn = document.getElementById('downloadBtn');
 const whatsappLink = document.getElementById('whatsappLink');
+const topWhatsapp = document.getElementById('topWhatsapp');
+const heroWhatsapp = document.getElementById('heroWhatsapp');
+
 const searchInput = document.getElementById('q');
 const sortSelect = document.getElementById('sort');
-const topWhatsapp = document.getElementById('topWhatsapp');
 const randomElfBtn = document.getElementById('randomElfBtn');
+const catalogCount = document.getElementById('catalogCount');
 
 const openAdminBtn = document.getElementById('openAdminBtn');
 const adminPanel = document.getElementById('adminPanel');
@@ -32,7 +36,7 @@ const adminList = document.getElementById('adminList');
 
 const PHONE = '573219170363';
 const ADMIN_PASSWORD = 'DuenDes123@@@';
-const STORAGE_KEY = 'duendesCatalogo.v2';
+const STATE_KEY = 'duendesCatalogo.admin.v1';
 
 const BASE_DUENDES = [
   { id: 'd1', name: 'Rodolfo', image: 'IMAGENES/1.jpeg' },
@@ -56,30 +60,64 @@ const BASE_DUENDES = [
   { id: 'd19', name: 'Mauro', image: 'IMAGENES/19.jpeg' }
 ];
 
-let inventory = loadInventory();
-let visibleInventory = [...inventory];
+let state = loadState();
+let inventory = [];
+let visibleInventory = [];
 let selectedElf = null;
 let activeCard = null;
 let adminUnlocked = false;
 
-function loadInventory() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [...BASE_DUENDES];
+function loadState() {
+  const raw = localStorage.getItem(STATE_KEY);
+  if (!raw) {
+    return { hiddenBaseIds: [], customItems: [] };
+  }
+
   try {
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || !parsed.length) return [...BASE_DUENDES];
-    return parsed;
+    if (!parsed || Array.isArray(parsed)) {
+      return { hiddenBaseIds: [], customItems: [] };
+    }
+
+    const hiddenBaseIds = Array.isArray(parsed.hiddenBaseIds) ? parsed.hiddenBaseIds : [];
+    const customItems = Array.isArray(parsed.customItems) ? parsed.customItems : [];
+
+    return { hiddenBaseIds, customItems };
   } catch {
-    return [...BASE_DUENDES];
+    return { hiddenBaseIds: [], customItems: [] };
   }
 }
 
-function saveInventory() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+function saveState() {
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+
+function buildInventory() {
+  const visibleBase = BASE_DUENDES.filter((elf) => !state.hiddenBaseIds.includes(elf.id));
+  const custom = state.customItems.filter((elf) => elf?.id && elf?.name && elf?.image);
+  inventory = [...visibleBase, ...custom];
+}
+
+function buildWhatsAppLink(message) {
+  return `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`;
+}
+
+function createWhatsAppTextIcon() {
+  return '💬';
 }
 
 function populateGallery(list) {
   gallery.innerHTML = '';
+
+  if (!list.length) {
+    const empty = document.createElement('div');
+    empty.className = 'admin-item';
+    empty.innerHTML = '<strong>No hay duendes visibles.</strong><small>Abre Panel admin y restaura o activa duendes base.</small>';
+    gallery.appendChild(empty);
+    catalogCount.textContent = '0 modelos';
+    return;
+  }
+
   list.forEach((elf) => {
     const card = document.createElement('article');
     card.className = 'card';
@@ -98,22 +136,27 @@ function populateGallery(list) {
 
     const actions = document.createElement('div');
     actions.className = 'actions';
+
     const btn = document.createElement('a');
-    btn.href = `https://wa.me/${PHONE}?text=${encodeURIComponent('Hola, quiero información sobre el duende ' + elf.name)}`;
+    btn.href = buildWhatsAppLink(`Hola, quiero información sobre el duende ${elf.name}.`);
     btn.target = '_blank';
     btn.rel = 'noopener noreferrer';
-    btn.textContent = 'WhatsApp';
-    actions.appendChild(btn);
+    btn.innerHTML = `<span class="wa-icon" aria-hidden="true">${createWhatsAppTextIcon()}</span><span>WhatsApp</span>`;
 
+    actions.appendChild(btn);
     meta.appendChild(name);
     meta.appendChild(actions);
     card.appendChild(img);
     card.appendChild(meta);
 
+    card.dataset.id = elf.id;
     card.dataset.name = elf.name.toLowerCase();
     card.addEventListener('click', () => selectElf(elf.id, card));
+
     gallery.appendChild(card);
   });
+
+  catalogCount.textContent = `${list.length} modelo${list.length === 1 ? '' : 's'}`;
 }
 
 function selectElf(id, card) {
@@ -122,6 +165,7 @@ function selectElf(id, card) {
 
   selectedElf = match;
   labelText.value = match.name;
+
   if (activeCard) activeCard.classList.remove('active');
   if (card) {
     activeCard = card;
@@ -133,11 +177,13 @@ function selectElf(id, card) {
 }
 
 function updateWhatsAppLink() {
-  const baseName = labelText.value?.trim() || selectedElf?.name || 'duende personalizado';
-  const msg = `Hola, quiero encargar el duende ${baseName}.`;
-  const href = `https://wa.me/${PHONE}?text=${encodeURIComponent(msg)}`;
+  const name = labelText.value?.trim() || selectedElf?.name || 'duende personalizado';
+  const msg = `Hola, quiero encargar el duende ${name}.`;
+  const href = buildWhatsAppLink(msg);
+
   whatsappLink.href = href;
-  if (topWhatsapp) topWhatsapp.href = href;
+  topWhatsapp.href = href;
+  heroWhatsapp.href = href;
 }
 
 function drawCustomizer() {
@@ -172,8 +218,8 @@ function drawCustomizer() {
 
   const name = labelText.value?.trim();
   if (name) {
-    ctx.fillStyle = '#11253c';
-    ctx.font = '700 24px Segoe UI';
+    ctx.fillStyle = '#152039';
+    ctx.font = '700 24px Outfit';
     ctx.textAlign = 'center';
     ctx.fillText(name, centerX, 390);
   }
@@ -304,27 +350,34 @@ function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
 }
 
 function applyFilters() {
+  buildInventory();
+
   const q = searchInput.value.trim().toLowerCase();
-  const filtered = inventory.filter((elf) => !q || elf.name.toLowerCase().includes(q));
+  let filtered = inventory.filter((elf) => !q || elf.name.toLowerCase().includes(q));
 
   if (sortSelect.value === 'name') {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
   }
 
   visibleInventory = filtered;
   populateGallery(filtered);
 
-  if (selectedElf) {
-    const stillVisible = filtered.find((item) => item.id === selectedElf.id);
-    if (!stillVisible) {
-      selectedElf = null;
-      activeCard = null;
-      updateWhatsAppLink();
-    } else {
-      const cards = Array.from(gallery.children);
-      const matchCard = cards.find((card) => card.dataset.name === stillVisible.name.toLowerCase());
-      if (matchCard) selectElf(stillVisible.id, matchCard);
-    }
+  if (!visibleInventory.length) {
+    selectedElf = null;
+    activeCard = null;
+    updateWhatsAppLink();
+    drawCustomizer();
+    return;
+  }
+
+  const selectedStillExists = selectedElf && visibleInventory.some((item) => item.id === selectedElf.id);
+  if (!selectedStillExists) {
+    const first = visibleInventory[0];
+    const firstCard = gallery.querySelector(`[data-id="${first.id}"]`);
+    selectElf(first.id, firstCard);
+  } else {
+    const sameCard = gallery.querySelector(`[data-id="${selectedElf.id}"]`);
+    if (sameCard) selectElf(selectedElf.id, sameCard);
   }
 }
 
@@ -332,8 +385,7 @@ function chooseRandomElf() {
   if (!visibleInventory.length) return;
   const randomIndex = Math.floor(Math.random() * visibleInventory.length);
   const randomElf = visibleInventory[randomIndex];
-  const cards = Array.from(gallery.children);
-  const randomCard = cards[randomIndex] || cards.find((card) => card.dataset.name === randomElf.name.toLowerCase());
+  const randomCard = gallery.querySelector(`[data-id="${randomElf.id}"]`);
   selectElf(randomElf.id, randomCard);
 }
 
@@ -346,6 +398,7 @@ function unlockAdmin() {
     alert('Contraseña incorrecta.');
     return;
   }
+
   adminUnlocked = true;
   adminAuth.classList.add('hidden');
   adminContent.classList.remove('hidden');
@@ -354,23 +407,67 @@ function unlockAdmin() {
 
 function renderAdminList() {
   adminList.innerHTML = '';
-  inventory.forEach((elf) => {
+
+  BASE_DUENDES.forEach((elf) => {
+    const hidden = state.hiddenBaseIds.includes(elf.id);
+
     const row = document.createElement('div');
     row.className = 'admin-item';
 
-    const label = document.createElement('strong');
-    label.textContent = `${elf.name}`;
+    const info = document.createElement('div');
+    info.innerHTML = `<strong>${elf.name}</strong><small>${hidden ? 'Oculto del catálogo' : 'Visible en catálogo'}</small>`;
+
+    const actionBtn = document.createElement('button');
+    actionBtn.className = 'btn soft';
+    actionBtn.type = 'button';
+    actionBtn.textContent = hidden ? 'Mostrar' : 'Ocultar';
+    actionBtn.addEventListener('click', () => toggleBaseVisibility(elf.id));
+
+    row.appendChild(info);
+    row.appendChild(actionBtn);
+    adminList.appendChild(row);
+  });
+
+  state.customItems.forEach((elf) => {
+    const row = document.createElement('div');
+    row.className = 'admin-item';
+
+    const info = document.createElement('div');
+    info.innerHTML = `<strong>${elf.name}</strong><small>Duende personalizado</small>`;
 
     const removeBtn = document.createElement('button');
-    removeBtn.className = 'btn';
+    removeBtn.className = 'btn soft';
     removeBtn.type = 'button';
     removeBtn.textContent = 'Eliminar';
-    removeBtn.addEventListener('click', () => removeElf(elf.id));
+    removeBtn.addEventListener('click', () => removeCustomElf(elf.id));
 
-    row.appendChild(label);
+    row.appendChild(info);
     row.appendChild(removeBtn);
     adminList.appendChild(row);
   });
+}
+
+function toggleBaseVisibility(id) {
+  if (!adminUnlocked) return;
+
+  if (state.hiddenBaseIds.includes(id)) {
+    state.hiddenBaseIds = state.hiddenBaseIds.filter((baseId) => baseId !== id);
+  } else {
+    state.hiddenBaseIds = [...state.hiddenBaseIds, id];
+  }
+
+  saveState();
+  applyFilters();
+  renderAdminList();
+}
+
+function removeCustomElf(id) {
+  if (!adminUnlocked) return;
+
+  state.customItems = state.customItems.filter((item) => item.id !== id);
+  saveState();
+  applyFilters();
+  renderAdminList();
 }
 
 function readFileAsDataUrl(file) {
@@ -404,14 +501,13 @@ async function addElf() {
     return;
   }
 
-  const item = {
+  state.customItems.unshift({
     id: `custom-${Date.now()}`,
     name,
     image
-  };
+  });
 
-  inventory.unshift(item);
-  saveInventory();
+  saveState();
   applyFilters();
   renderAdminList();
 
@@ -420,39 +516,36 @@ async function addElf() {
   newElfFile.value = '';
 }
 
-function removeElf(id) {
-  if (!adminUnlocked) return;
-
-  inventory = inventory.filter((item) => item.id !== id);
-  saveInventory();
-  applyFilters();
-  renderAdminList();
-
-  if (selectedElf?.id === id) {
-    selectedElf = null;
-    labelText.value = '';
-    updateWhatsAppLink();
-    drawCustomizer();
-  }
-}
-
 function resetCatalog() {
   if (!adminUnlocked) return;
-  const ok = confirm('¿Seguro que quieres restablecer el catálogo base?');
-  if (!ok) return;
 
-  inventory = [...BASE_DUENDES];
-  saveInventory();
+  const confirmed = confirm('¿Deseas restaurar todos los duendes base y eliminar los personalizados?');
+  if (!confirmed) return;
+
+  state = { hiddenBaseIds: [], customItems: [] };
+  saveState();
   applyFilters();
   renderAdminList();
 }
 
-[bgColor, skinColor, hatColor, clothColor, eyeColor, eyeStyle, beardStyle, accessory, labelText].forEach((el) => {
-  el.addEventListener('input', () => {
+function downloadPreview() {
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(labelText.value || 'duende').trim().replace(/\s+/g, '-')}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function bindInputRepaint(element) {
+  element.addEventListener('input', () => {
     updateWhatsAppLink();
     drawCustomizer();
   });
-});
+}
+
+[bgColor, skinColor, hatColor, clothColor, eyeColor, eyeStyle, beardStyle, accessory, labelText].forEach(bindInputRepaint);
 
 searchInput.addEventListener('input', applyFilters);
 sortSelect.addEventListener('change', applyFilters);
@@ -461,10 +554,7 @@ openAdminBtn.addEventListener('click', openAdminPanel);
 adminLoginBtn.addEventListener('click', unlockAdmin);
 addElfBtn.addEventListener('click', addElf);
 resetCatalogBtn.addEventListener('click', resetCatalog);
-
-actionOnEnter(adminPassword, unlockAdmin);
-actionOnEnter(newElfName, addElf);
-actionOnEnter(newElfImage, addElf);
+downloadBtn.addEventListener('click', downloadPreview);
 
 function actionOnEnter(element, callback) {
   element.addEventListener('keydown', (event) => {
@@ -472,12 +562,10 @@ function actionOnEnter(element, callback) {
   });
 }
 
+actionOnEnter(adminPassword, unlockAdmin);
+actionOnEnter(newElfName, addElf);
+actionOnEnter(newElfImage, addElf);
+
 applyFilters();
-if (inventory.length) {
-  selectedElf = inventory[0];
-  labelText.value = selectedElf.name;
-  const firstCard = gallery.firstElementChild;
-  if (firstCard) selectElf(selectedElf.id, firstCard);
-}
 updateWhatsAppLink();
 drawCustomizer();

@@ -10,11 +10,15 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand">
-        <h1>Catálogo de Duendes</h1>
-        <small>Edición personalizada y pedidos por WhatsApp</small>
+        <img src="logo/logo.png" alt="Logo catálogo de duendes" class="brand-logo">
+        <div>
+          <h1>Catálogo de Duendes</h1>
+          <small>Edición personalizada y pedidos por WhatsApp</small>
+        </div>
       </div>
       <div class="header-actions">
         <a id="topWhatsapp" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
+        <button id="openAdminBtn" class="btn" type="button">Panel admin</button>
       </div>
     </div>
   </header>
@@ -22,6 +26,9 @@
   <section class="hero container">
     <h2>Encuentra tu duende ideal</h2>
     <p class="lead">Selecciona un modelo, personaliza su estilo y descarga una vista previa de tu diseño.</p>
+    <div class="hero-actions">
+      <button id="randomElfBtn" class="btn primary" type="button">Deja que un duende te elija</button>
+    </div>
     <div class="searchRow">
       <input id="q" type="search" placeholder="Buscar por nombre de imagen (ej: 12.jpeg)">
       <select id="sort" aria-label="Ordenar catálogo">
@@ -37,19 +44,39 @@
     </section>
 
     <aside class="editor" id="editor">
-      <h2>Editor del Duende</h2>
+      <h2>Personaliza tu duende</h2>
       <div class="preview" id="previewWrap">
         <canvas id="preview" width="400" height="400"></canvas>
       </div>
       <div class="controls">
-        <label>Fondo: <input type="color" id="bgColor" value="#ffffff"></label>
-        <label>Tinte: <input type="color" id="tintColor" value="#ffffff"></label>
-        <label>Opacidad tinte: <input type="range" id="tintOpacity" min="0" max="1" step="0.01" value="0"></label>
-        <label>Escala: <input type="range" id="scale" min="0.2" max="2" step="0.01" value="1"></label>
-        <label>Rotación: <input type="range" id="rotate" min="-180" max="180" step="1" value="0"></label>
-        <label>Nombre: <input type="text" id="labelText" placeholder="Nombre del duende"></label>
-        <label>Tamaño texto: <input type="number" id="labelSize" value="24"></label>
-        <label>Color texto: <input type="color" id="labelColor" value="#000000"></label>
+        <label>Nombre del duende: <input type="text" id="labelText" placeholder="Ej: Rodolfo"></label>
+        <label>Fondo: <input type="color" id="bgColor" value="#eef6ff"></label>
+        <label>Tono de piel: <input type="color" id="skinColor" value="#f7c59f"></label>
+        <label>Color gorro: <input type="color" id="hatColor" value="#c62828"></label>
+        <label>Color traje: <input type="color" id="clothColor" value="#2e7d32"></label>
+        <label>Color ojos: <input type="color" id="eyeColor" value="#2f2f2f"></label>
+        <label>Tipo de ojos:
+          <select id="eyeStyle">
+            <option value="classic">Clásicos</option>
+            <option value="happy">Alegres</option>
+            <option value="sleepy">Relajados</option>
+          </select>
+        </label>
+        <label>Barba:
+          <select id="beardStyle">
+            <option value="long">Larga</option>
+            <option value="short">Corta</option>
+            <option value="none">Sin barba</option>
+          </select>
+        </label>
+        <label>Accesorio:
+          <select id="accessory">
+            <option value="star">Estrella</option>
+            <option value="bell">Campana</option>
+            <option value="heart">Corazón</option>
+            <option value="none">Ninguno</option>
+          </select>
+        </label>
         <div class="editor-actions">
           <button id="downloadBtn" class="btn primary" type="button">Descargar imagen</button>
           <a id="whatsappLink" class="btn whatsapp" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
@@ -58,19 +85,28 @@
     </aside>
   </main>
 
+  <section id="adminPanel" class="admin-panel container hidden" aria-label="Panel de administración">
+    <h3>Administrar inventario</h3>
+    <div class="admin-auth" id="adminAuth">
+      <input type="password" id="adminPassword" placeholder="Contraseña de administrador">
+      <button id="adminLoginBtn" class="btn primary" type="button">Ingresar</button>
+      <small>Contraseña actual configurada en sistema.</small>
+    </div>
+    <div class="admin-content hidden" id="adminContent">
+      <div class="admin-form">
+        <input type="text" id="newElfName" placeholder="Nombre del duende">
+        <input type="url" id="newElfImage" placeholder="URL de imagen (opcional)">
+        <input type="file" id="newElfFile" accept="image/*">
+        <button id="addElfBtn" class="btn" type="button">Añadir duende</button>
+        <button id="resetCatalogBtn" class="btn" type="button">Restablecer catálogo base</button>
+      </div>
+      <div id="adminList" class="admin-list"></div>
+    </div>
+  </section>
+
   <footer>
     <small>Catálogo creado con imágenes locales en <strong>IMAGENES</strong>.</small>
   </footer>
-
-  <script>
-    // Lista de imágenes detectadas en el workspace
-    const IMAGES = [
-      "IMAGENES/1.jpeg","IMAGENES/2.jpeg","IMAGENES/3.jpeg","IMAGENES/4.jpeg","IMAGENES/5.jpeg",
-      "IMAGENES/6.jpeg","IMAGENES/7.jpeg","IMAGENES/8.jpeg","IMAGENES/9.jpeg","IMAGENES/10.jpeg",
-      "IMAGENES/11.jpeg","IMAGENES/12.jpeg","IMAGENES/13.jpeg","IMAGENES/14.jpeg","IMAGENES/15.jpeg",
-      "IMAGENES/16.jpeg","IMAGENES/17.jpeg","IMAGENES/18.jpeg","IMAGENES/19.jpeg"
-    ];
-  </script>
   <script src="assets/script.js"></script>
 </body>
 </html>

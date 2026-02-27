@@ -172,7 +172,9 @@ async function loadInventory() {
       }
     }
     
-    inventory = parsedInventory.length > 0 ? parsedInventory : [...INITIAL_DUENDES];
+    // Combine INITIAL_DUENDES with the ones from Google Sheets
+    // We put the Google Sheets ones first so they appear at the top
+    inventory = [...parsedInventory, ...INITIAL_DUENDES];
   } catch (error) {
     console.error('Error loading from Google Sheets:', error);
     inventory = [...INITIAL_DUENDES];

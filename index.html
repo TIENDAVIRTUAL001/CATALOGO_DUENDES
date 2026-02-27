@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catálogo de Duendes - Pablo</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <h1>Catálogo de Duendes</h1>
+    <p>Selecciona un duende para personalizarlo y contactar por WhatsApp.</p>
+  </header>
+
+  <main class="layout">
+    <section class="gallery" id="gallery">
+      <!-- Cards se insertan dinámicamente -->
+    </section>
+
+    <aside class="editor" id="editor">
+      <h2>Editor del Duende</h2>
+      <div class="preview" id="previewWrap">
+        <canvas id="preview" width="400" height="400"></canvas>
+      </div>
+      <div class="controls">
+        <label>Fondo: <input type="color" id="bgColor" value="#ffffff"></label>
+        <label>Tinte: <input type="color" id="tintColor" value="#ffffff"></label>
+        <label>Opacidad tinte: <input type="range" id="tintOpacity" min="0" max="1" step="0.01" value="0"></label>
+        <label>Escala: <input type="range" id="scale" min="0.2" max="2" step="0.01" value="1"></label>
+        <label>Rotación: <input type="range" id="rotate" min="-180" max="180" step="1" value="0"></label>
+        <label>Nombre: <input type="text" id="labelText" placeholder="Nombre del duende"></label>
+        <label>Tamaño texto: <input type="number" id="labelSize" value="24"></label>
+        <label>Color texto: <input type="color" id="labelColor" value="#000000"></label>
+        <button id="downloadBtn">Descargar imagen</button>
+        <a id="whatsappLink" class="whatsapp" target="_blank">Contactar por WhatsApp</a>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <small>Catálogo creado con las imágenes en la carpeta <strong>IMAGENES</strong>.</small>
+  </footer>
+
+  <script>
+    // Lista de imágenes detectadas en el workspace
+    const IMAGES = [
+      "IMAGENES/1.jpeg","IMAGENES/2.jpeg","IMAGENES/3.jpeg","IMAGENES/4.jpeg","IMAGENES/5.jpeg",
+      "IMAGENES/6.jpeg","IMAGENES/7.jpeg","IMAGENES/8.jpeg","IMAGENES/9.jpeg","IMAGENES/10.jpeg",
+      "IMAGENES/11.jpeg","IMAGENES/12.jpeg","IMAGENES/13.jpeg","IMAGENES/14.jpeg","IMAGENES/15.jpeg",
+      "IMAGENES/16.jpeg","IMAGENES/17.jpeg","IMAGENES/18.jpeg","IMAGENES/19.jpeg"
+    ];
+  </script>
+  <script src="assets/script.js"></script>
+</body>
+</html>
